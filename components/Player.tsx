@@ -161,7 +161,7 @@ export function Player() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-[80px] left-4 right-4 z-50 bg-[#1C1C1E]/95 backdrop-blur-md rounded-full flex items-center p-2 pr-4 cursor-pointer shadow-2xl border border-white/10"
+            className="fixed bottom-[80px] left-4 right-4 z-50 flex cursor-pointer items-center rounded-full border border-white/10 bg-[#1C1C1E]/95 p-2 pr-4 shadow-2xl backdrop-blur-md md:bottom-6 md:left-6 md:right-auto md:w-[420px]"
             onClick={() => setExpanded(true)}
           >
             <AnimatePresence mode="wait">
@@ -178,7 +178,7 @@ export function Player() {
                   <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
                     <circle 
-                      cx="50" cy="50" r="46" fill="none" stroke="#A78BFA" strokeWidth="4" 
+                      cx="50" cy="50" r="46" fill="none" stroke="#FF7A59" strokeWidth="4" 
                       strokeDasharray={`${2 * Math.PI * 46}`}
                       strokeDashoffset={`${2 * Math.PI * 46 * (1 - (duration > 0 ? progress / duration : 0))}`}
                       strokeLinecap="round"
@@ -227,7 +227,7 @@ export function Player() {
                 onClick={handleLike}
                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-colors"
               >
-                <Heart className={`w-5 h-5 ${isLiked ? 'fill-[#FA243C] text-[#FA243C]' : ''}`} />
+                <Heart className={`w-5 h-5 ${isLiked ? 'fill-[#FF7A59] text-[#FF7A59]' : ''}`} />
               </button>
             </div>
           </motion.div>

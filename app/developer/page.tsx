@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { ArrowLeft, Globe, Instagram, Twitter, Download, Tv, CheckCircle2, Github } from 'lucide-react';
+import { ArrowLeft, Instagram, Download, CheckCircle2, Github } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
@@ -20,24 +20,23 @@ export default function DeveloperPage() {
       </div>
 
       <div className="px-6 pt-6">
-        <h2 className="text-[#4ADE80] text-sm font-medium mb-8">Lead Developer</h2>
+        <h2 className="text-[#FFD4C6] text-sm font-medium mb-8">Lead Developer</h2>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center text-center space-y-6"
         >
-          {/* Blob Avatar */}
           <div className="relative w-48 h-48 mb-2">
-            <div className="absolute inset-0 bg-[#1A2E23] rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] animate-[blob_8s_ease-in-out_infinite] scale-110" />
-            <div className="absolute inset-0 bg-[#224032] rounded-[60%_40%_30%_70%_/_50%_60%_40%_50%] animate-[blob_8s_ease-in-out_infinite_reverse] scale-105" />
-            <div className="relative w-full h-full rounded-[50%_50%_40%_60%_/_60%_40%_50%_50%] overflow-hidden border-2 border-[#4ADE80]/20 z-10">
+            <div className="absolute inset-0 rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] bg-[#2B1820] animate-[blob_8s_ease-in-out_infinite] scale-110" />
+            <div className="absolute inset-0 rounded-[60%_40%_30%_70%_/_50%_60%_40%_50%] bg-[#3B1F1A] animate-[blob_8s_ease-in-out_infinite_reverse] scale-105" />
+            <div className="relative w-full h-full rounded-[50%_50%_40%_60%_/_60%_40%_50%_50%] overflow-hidden border-2 border-[#FF7A59]/25 z-10 bg-[#15121B]">
               <Image 
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`}
-                alt="safe_rill" 
+                src="/icon.svg"
+                alt="Melolo logo" 
                 fill 
                 sizes="192px"
-                className="object-cover"
+                className="object-contain p-7"
               />
             </div>
           </div>
@@ -66,7 +65,7 @@ export default function DeveloperPage() {
           {/* Download APK / Install PWA */}
           <button 
             onClick={installPWA}
-            className="w-full max-w-sm flex items-center justify-center gap-3 bg-[#1C1C1E] hover:bg-[#2C2C2E] text-white font-medium py-4 px-6 rounded-2xl transition-colors border border-white/5"
+            className="w-full max-w-sm flex items-center justify-center gap-3 bg-[#FF7A59] hover:bg-[#FF8A6D] text-black font-semibold py-4 px-6 rounded-2xl transition-colors border border-[#FF7A59]/20"
           >
             <Download className="w-5 h-5" />
             <span>Download APK</span>

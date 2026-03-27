@@ -2,20 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { Track, usePlayerStore } from '@/lib/store';
-import { Loader2, History, Cast, User, Play, MoreVertical } from 'lucide-react';
+import { History, MoreVertical, Play, Search, Sparkles } from 'lucide-react';
 import Image from 'next/image';
-import { HorizontalScroll } from '@/components/HorizontalScroll';
-import { CommunityPlaylistCard } from '@/components/CommunityPlaylistCard';
-import { getHighResImage } from '@/lib/utils';
-import { motion } from 'motion/react';
 import Link from 'next/link';
-
+import { motion } from 'motion/react';
+import { CommunityPlaylistCard } from '@/components/CommunityPlaylistCard';
 import { HomeSkeleton } from '@/components/HomeSkeleton';
+import { HorizontalScroll } from '@/components/HorizontalScroll';
+import { getHighResImage } from '@/lib/utils';
 
 const pills = ['Chill', 'Focus', 'Commute', 'Gaming', 'Energize', 'Party', 'Feel good', 'Romance', 'Workout', 'Sleep', 'Sad', 'Happy', 'Nostalgia', 'Acoustic', 'Pop', 'Rock'];
 
+const getArtistName = (track?: Track) =>
+  !track ? 'Unknown Artist' : Array.isArray(track.artist) ? track.artist.map((artist) => artist.name).join(', ') : track.artist?.name || 'Unknown Artist';
+
+const formatPlayedAt = (timestamp: number) =>
+  new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(timestamp);
+
 export default function Home() {
-  const [heroTracks, setHeroTracks] = useState<Track[]>([]);
   const [speedDialTracks, setSpeedDialTracks] = useState<Track[]>([]);
   const [quickPicksTracks, setQuickPicksTracks] = useState<Track[]>([]);
   const [communityPlaylists, setCommunityPlaylists] = useState<any[]>([]);
@@ -27,9 +31,11 @@ export default function Home() {
   const [loadingFilter, setLoadingFilter] = useState(false);
   const playTrack = usePlayerStore((state) => state.playTrack);
   const history = usePlayerStore((state) => state.history);
+  const latestHistoryTrackId = history[0]?.track?.videoId;
 
   useEffect(() => {
     if (!activeFilter) return;
+
     const fetchFilterData = async () => {
       setLoadingFilter(true);
       try {
@@ -38,14 +44,14 @@ export default function Home() {
           { title: `${activeFilter} hits`, q: `top ${activeFilter} songs` },
           { title: `More like ${activeFilter}`, q: `best ${activeFilter} tracks` },
         ];
-        
+
         const results = [];
         for (const { title, q } of queries) {
           const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=song`);
           const data = await res.json();
           results.push({ title, tracks: data.slice(0, 10) });
         }
-        
+
         setFilterData(results);
       } catch (error) {
         console.error(error);
@@ -53,6 +59,7 @@ export default function Home() {
         setLoadingFilter(false);
       }
     };
+
     fetchFilterData();
   }, [activeFilter]);
 
@@ -60,43 +67,29 @@ export default function Home() {
     const fetchHomeData = async () => {
       try {
         const queries: { key: string; title?: string; q: string; type?: string }[] = [
-          { key: 'hero', q: 'dave how i met my ex', type: 'song' },
           { key: 'speedDial', q: 'top hits 2024', type: 'song' },
           { key: 'quickPicks', q: 'viral hits indonesia', type: 'song' },
           { key: 'community', q: 'chill playlists', type: 'playlist' },
           { key: 'artists', q: 'artis indonesia populer', type: 'artist' },
-        ];
-
-        // Add default categories
-        const defaultCategories = [
           { key: 'cat0', title: 'Trending Now', q: 'lagu indonesia hits terbaru', type: 'song' },
           { key: 'cat1', title: 'New Releases', q: 'lagu pop indonesia rilis terbaru', type: 'song' },
           { key: 'cat2', title: 'Top 50 Indonesia', q: 'top 50 indonesia playlist update', type: 'song' },
           { key: 'cat3', title: 'Viral on TikTok', q: 'lagu fyp tiktok viral', type: 'song' },
-          { key: 'cat4', title: 'For Eid Getaways', q: 'lagu lebaran idul fitri', type: 'song' },
-          { key: 'cat5', title: 'Surrender to the Beat', q: 'lagu edm jedag jedug', type: 'song' },
-          { key: 'cat6', title: 'Fun throwbacks', q: 'lagu nostalgia 2000an indonesia', type: 'song' },
-          { key: 'cat7', title: 'Feel-good rock', q: 'lagu rock indonesia terbaik', type: 'song' },
-          { key: 'cat8', title: 'Acoustic Chill', q: 'lagu akustik cafe santai', type: 'song' },
+          { key: 'cat4', title: 'Fun throwbacks', q: 'lagu nostalgia 2000an indonesia', type: 'song' },
         ];
-        
-        queries.push(...defaultCategories);
 
-        // Process in chunks of 3 to avoid 403 errors from too many parallel requests
         const results = [];
         for (let i = 0; i < queries.length; i += 3) {
           const chunk = queries.slice(i, i + 3);
           const chunkResults = await Promise.all(
             chunk.map(async ({ key, title, q, type }) => {
               try {
-                const url = type 
-                  ? `/api/search?q=${encodeURIComponent(q)}&type=${type}`
-                  : `/api/search?q=${encodeURIComponent(q)}`;
+                const url = type ? `/api/search?q=${encodeURIComponent(q)}&type=${type}` : `/api/search?q=${encodeURIComponent(q)}`;
                 const res = await fetch(url);
                 if (!res.ok) return { key, title, data: [] };
                 const data = await res.json();
                 return { key, title, data };
-              } catch (e) {
+              } catch {
                 return { key, title, data: [] };
               }
             })
@@ -104,19 +97,18 @@ export default function Home() {
           results.push(...chunkResults);
         }
 
-        const cats: { title: string; tracks: Track[] }[] = [];
+        const nextCategories: { title: string; tracks: Track[] }[] = [];
 
         results.forEach(({ key, title, data }) => {
-          if (!data || data.length === 0) return;
-          if (key === 'hero') setHeroTracks(data.slice(0, 3));
-          else if (key === 'speedDial') setSpeedDialTracks(data.slice(0, 45));
+          if (!data?.length) return;
+          if (key === 'speedDial') setSpeedDialTracks(data.slice(0, 45));
           else if (key === 'quickPicks') setQuickPicksTracks(data.slice(0, 20));
-          else if (key === 'community') setCommunityPlaylists(data.slice(0, 10));
-          else if (key === 'artists') setArtists(data.slice(0, 10));
-          else if (key.startsWith('cat') && title) cats.push({ title, tracks: data.slice(0, 10) });
+          else if (key === 'community') setCommunityPlaylists(data.slice(0, 6));
+          else if (key === 'artists') setArtists(data.slice(0, 6));
+          else if (key.startsWith('cat') && title) nextCategories.push({ title, tracks: data.slice(0, 10) });
         });
 
-        setCategories(cats);
+        setCategories(nextCategories);
       } catch (error) {
         console.error('Failed to fetch home data:', error);
       } finally {
@@ -125,247 +117,334 @@ export default function Home() {
     };
 
     fetchHomeData();
-    
-    const handleFocus = () => {
-      fetchHomeData();
-    };
-    
+    const handleFocus = () => fetchHomeData();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [history[0]?.track?.videoId]);
+  }, [latestHistoryTrackId]);
 
-  return (
-    <main className="min-h-screen pt-6 pb-24">
-      <div className="flex items-center justify-between px-4 mb-4">
-        <h1 className="text-2xl font-bold text-white">Beranda</h1>
-        <div className="flex items-center gap-4 text-white/80">
-          <Link href="/history" className="hover:text-white transition-colors">
-            <History className="w-6 h-6" />
-          </Link>
-          <Cast className="w-6 h-6" />
-          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center relative">
-            <Image src="https://f.top4top.io/p_3733w0g4e0.jpg" alt="Developer Profile" fill sizes="32px" className="object-cover" />
-          </div>
+  const quickLaunch = speedDialTracks.slice(0, 6);
+  const recommendedTracks = quickPicksTracks.slice(0, 6);
+  const recentHistory = history.slice(0, 4);
+  const topArtists = artists.slice(0, 6);
+
+  if (loading || (activeFilter && loadingFilter)) {
+    return (
+      <main className="min-h-screen pb-32 md:pb-16">
+        <div className="page-shell pt-6">
+          <HomeSkeleton />
         </div>
-      </div>
+      </main>
+    );
+  }
 
-      <div className="flex overflow-x-auto no-scrollbar gap-3 px-4 mb-4 snap-x snap-mandatory scroll-smooth">
-        {pills.map((pill) => (
-          <button 
-            key={pill} 
-            onClick={() => setActiveFilter(activeFilter === pill ? null : pill)}
-            className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors border snap-center ${
-              activeFilter === pill 
-                ? 'bg-white text-black border-white' 
-                : 'bg-white/10 hover:bg-white/20 text-white border-white/5'
-            }`}
-          >
-            {pill}
-          </button>
-        ))}
-      </div>
+  if (activeFilter) {
+    return (
+      <main className="min-h-screen pb-32 md:pb-16">
+        <div className="page-shell space-y-8 pt-6">
+          <section className="glass-panel-strong rounded-[32px] p-6 md:p-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FF7A59]/30 bg-[#FF7A59]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[#FFD4C6]">
+              <Sparkles className="h-3.5 w-3.5" />
+              Mood Mix
+            </div>
+            <h1 className="mt-4 text-4xl font-semibold text-white md:text-5xl">Suasana {activeFilter} sedang aktif.</h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-white/70">
+              Saya tampilkan rak lagu yang lebih ringkas dan fokus ke musik, tanpa banner besar di bagian atas.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                onClick={() => setActiveFilter(null)}
+                className="rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Kembali ke beranda
+              </button>
+              <Link
+                href="/search"
+                className="inline-flex items-center gap-2 rounded-full bg-[#FF7A59] px-5 py-3 text-sm font-semibold text-black transition hover:scale-[1.02]"
+              >
+                <Search className="h-4 w-4" />
+                Cari lagu lain
+              </Link>
+            </div>
+          </section>
 
-      {loading || (activeFilter && loadingFilter) ? (
-        <HomeSkeleton />
-      ) : activeFilter ? (
-        <div className="space-y-10">
-          {filterData.map((cat, i) => (
-            <HorizontalScroll key={i} title={cat.title} tracks={cat.tracks} />
-          ))}
-          
-          <div className="px-4 mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">Suasana Hati dan Genre</h2>
-            <div className="grid grid-rows-2 grid-flow-col gap-3 overflow-x-auto no-scrollbar pb-4 snap-x snap-mandatory">
-              {pills.map((p) => (
+          <section className="glass-panel rounded-[28px] p-5">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">Ganti Mood</div>
+                <h2 className="mt-1 text-2xl font-semibold text-white">Pilih kategori lain</h2>
+              </div>
+              <Link href="/search" className="hidden text-sm font-medium text-[#FFD4C6] md:inline">
+                Buka pencarian
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+              {pills.map((pill) => (
                 <button
-                  key={p}
-                  onClick={() => setActiveFilter(p)}
-                  className="bg-[#1C1C1E] hover:bg-white/10 text-white font-medium py-3 px-4 rounded-lg text-left transition-colors border border-white/5 min-w-[160px] snap-center"
+                  key={pill}
+                  onClick={() => setActiveFilter(activeFilter === pill ? null : pill)}
+                  className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm font-medium transition-colors ${
+                    activeFilter === pill
+                      ? 'border-transparent bg-[#FF7A59] text-black'
+                      : 'border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white'
+                  }`}
                 >
-                  <span className="text-sm">{p}</span>
+                  {pill}
                 </button>
               ))}
             </div>
-          </div>
+          </section>
+
+          <section className="space-y-10">
+            {filterData.map((cat, index) => (
+              <HorizontalScroll key={`${cat.title}-${index}`} title={cat.title} tracks={cat.tracks} />
+            ))}
+          </section>
         </div>
-      ) : (
-        <div className="space-y-10">
-          {heroTracks.length > 0 && (
-            <div className="flex overflow-x-auto no-scrollbar gap-4 px-4 snap-x snap-mandatory scroll-smooth pb-4">
-              {heroTracks.map((track, i) => (
-                <motion.div 
-                  key={`hero-${track.videoId}-${i}`}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, amount: 0.1 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="relative w-[85vw] sm:w-[400px] shrink-0 aspect-[4/5] sm:aspect-video rounded-3xl overflow-hidden cursor-pointer group shadow-2xl snap-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
-                  onClick={() => playTrack(track, heroTracks, 'similar')}
-                >
-                  <Image 
-                    src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 800)} 
-                    alt={track.name} 
-                    fill 
-                    sizes="(max-width: 640px) 85vw, 400px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-700" 
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen pb-32 md:pb-16">
+      <div className="page-shell space-y-8 pt-6">
+        <section className="glass-panel-strong rounded-[32px] p-5 md:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#FF7A59]/30 bg-[#FF7A59]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[#FFD4C6]">
+                <Sparkles className="h-3.5 w-3.5" />
+                Melolo Picks
+              </div>
+              <h1 className="mt-4 text-4xl font-semibold text-white md:text-5xl">Beranda</h1>
+              <p className="mt-3 max-w-xl text-base leading-7 text-white/70">
+                Temukan lagu, playlist, dan artis favoritmu dengan tampilan yang lebih bersih, tanpa banner besar di bagian atas.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/history"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+              >
+                <History className="h-4 w-4" />
+                Riwayat
+              </Link>
+              <Link
+                href="/search"
+                className="inline-flex items-center gap-2 rounded-full bg-[#FF7A59] px-4 py-2.5 text-sm font-semibold text-black transition hover:scale-[1.02]"
+              >
+                <Search className="h-4 w-4" />
+                Cari lagu
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-5 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+            {pills.map((pill) => (
+              <button
+                key={pill}
+                onClick={() => setActiveFilter(activeFilter === pill ? null : pill)}
+                className="whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/80 transition hover:border-transparent hover:bg-[#FF7A59] hover:text-black"
+              >
+                {pill}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.32em] text-white/40">Mainkan Cepat</div>
+              <h2 className="mt-1 text-3xl font-semibold text-white">Langsung putar</h2>
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {quickLaunch.map((track, index) => (
+              <motion.button
+                key={`quick-launch-${track.videoId}-${index}`}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                onClick={() => playTrack(track, speedDialTracks, 'similar')}
+                className="group flex items-center gap-4 overflow-hidden rounded-2xl bg-white/8 p-2 pr-4 text-left transition hover:bg-white/12"
+              >
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
+                  <Image
+                    src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 320)}
+                    alt={track.name}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                  <div className="absolute top-4 left-4 right-4">
-                    <h2 className="text-2xl font-bold text-white drop-shadow-lg">{track.name}</h2>
-                    <p className="text-white/80 font-medium drop-shadow-md">
-                      {Array.isArray(track.artist) ? track.artist.map(a => a.name).join(', ') : track.artist?.name}
-                    </p>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold text-white">{track.name}</div>
+                  <div className="mt-1 truncate text-xs text-white/55">{getArtistName(track)}</div>
+                </div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FF7A59] text-black shadow-lg transition group-hover:scale-[1.04]">
+                  <Play className="ml-0.5 h-4 w-4 fill-current" />
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+          <div className="rounded-[30px] bg-[#121212] p-5 md:p-6">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">Untuk Kamu</div>
+                <h2 className="mt-1 text-3xl font-semibold text-white">Lanjutkan mendengar</h2>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {recommendedTracks.map((track, index) => (
+                <motion.div
+                  key={`recommended-${track.videoId}-${index}`}
+                  initial={{ opacity: 0, x: 10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="flex items-center gap-3 rounded-2xl bg-white/6 p-3 transition hover:bg-white/10"
+                >
+                  <button
+                    onClick={() => playTrack(track, quickPicksTracks, 'similar')}
+                    className="relative h-14 w-14 overflow-hidden rounded-xl"
+                  >
+                    <Image
+                      src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 280)}
+                      alt={track.name}
+                      fill
+                      sizes="56px"
+                      className="object-cover"
+                    />
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-bold text-white">{track.name}</div>
+                    <div className="mt-1 truncate text-xs text-white/55">{getArtistName(track)}</div>
                   </div>
-                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                    <p className="text-sm text-white/60 truncate pr-4">Sounds like Raindance • Dave, Tems</p>
-                    <div className="w-12 h-12 bg-[#FA243C] rounded-full flex items-center justify-center shadow-lg shadow-[#FA243C]/30 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                      <Play className="w-6 h-6 text-white ml-1 fill-current" />
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => playTrack(track, quickPicksTracks, 'similar')}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF7A59] text-black transition hover:scale-[1.03]"
+                  >
+                    <Play className="ml-0.5 h-4 w-4 fill-current" />
+                  </button>
+                  <button className="text-white/45 transition hover:text-white">
+                    <MoreVertical className="h-5 w-5" />
+                  </button>
                 </motion.div>
               ))}
             </div>
-          )}
+          </div>
 
-          {speedDialTracks.length > 0 && (
-            <div className="px-4">
-              <h2 className="text-2xl font-bold text-white mb-4">Speed dial</h2>
-              <div className="flex overflow-x-auto no-scrollbar gap-4 snap-x snap-mandatory scroll-smooth pb-4">
-                {Array.from({ length: Math.ceil(speedDialTracks.length / 9) }).map((_, i) => {
-                  const chunk = speedDialTracks.slice(i * 9, i * 9 + 9);
-                  return (
-                    <motion.div 
-                      key={`speeddial-chunk-${i}`}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true, amount: 0.1 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="w-[85vw] sm:w-[400px] shrink-0 snap-center grid grid-cols-3 gap-2"
+          <div className="rounded-[30px] bg-[linear-gradient(180deg,rgba(255,122,89,0.18),#121212)] p-5 md:p-6">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">Terakhir Diputar</div>
+                <h2 className="mt-1 text-3xl font-semibold text-white">Riwayat singkat</h2>
+              </div>
+              <Link href="/history" className="text-sm font-semibold text-white/70 transition hover:text-white">
+                Lihat semua
+              </Link>
+            </div>
+
+            <div className="space-y-3">
+              {recentHistory.length > 0 ? (
+                recentHistory.map((item) => (
+                  <button
+                    key={item.track.videoId}
+                    onClick={() => playTrack(item.track, recentHistory.map((entry) => entry.track), 'similar')}
+                    className="flex w-full items-center gap-3 rounded-2xl bg-black/20 p-3 text-left transition hover:bg-black/30"
+                  >
+                    <div className="relative h-14 w-14 overflow-hidden rounded-xl">
+                      <Image
+                        src={getHighResImage(item.track.thumbnails?.[item.track.thumbnails.length - 1]?.url, 280)}
+                        alt={item.track.name}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-bold text-white">{item.track.name}</div>
+                      <div className="mt-1 truncate text-xs text-white/55">{getArtistName(item.track)}</div>
+                      <div className="mt-1 text-[11px] uppercase tracking-[0.24em] text-white/35">{formatPlayedAt(item.playedAt)}</div>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="rounded-2xl bg-black/20 p-5 text-sm leading-7 text-white/55">
+                  Belum ada lagu yang diputar. Setelah kamu memutar lagu, riwayat akan muncul di sini.
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {topArtists.length > 0 && (
+          <section>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.32em] text-white/40">Popular Artists</div>
+                <h2 className="mt-1 text-3xl font-semibold text-white">Artis populer</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+              {topArtists.map((artist, index) => {
+                const artistName = artist.name || 'Artist';
+                return (
+                  <Link href={`/artist/${artist.artistId}`} key={`artist-${artist.artistId}-${index}`}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.15 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="rounded-[26px] bg-[#181818] p-4 text-center transition hover:bg-[#222]"
                     >
-                      {chunk.map((track, j) => (
-                        <div 
-                          key={`speeddial-${track.videoId}-${j}`}
-                          className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
-                          onClick={() => playTrack(track, speedDialTracks, 'similar')}
-                        >
-                          <Image src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 200)} alt={track.name} fill sizes="64px" className="object-cover" />
-                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                          <div className="absolute bottom-2 left-2 right-2">
-                            <p className="text-white text-xs font-medium truncate drop-shadow-md">{track.name}</p>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="relative mx-auto h-24 w-24 overflow-hidden rounded-full shadow-xl">
+                        <Image
+                          src={getHighResImage(artist.thumbnails?.[artist.thumbnails.length - 1]?.url, 400)}
+                          alt={artistName}
+                          fill
+                          sizes="96px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="mt-3 text-sm font-bold text-white line-clamp-1">{artistName}</div>
+                      <div className="mt-1 text-xs uppercase tracking-[0.24em] text-white/35">Artist</div>
                     </motion.div>
-                  );
-                })}
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {communityPlaylists.length > 0 && (
+          <section>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.32em] text-white/40">Community Picks</div>
+                <h2 className="mt-1 text-3xl font-semibold text-white">Playlist pilihan</h2>
               </div>
             </div>
-          )}
-
-          {quickPicksTracks.length > 0 && (
-            <div className="px-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white">Pilihan cepat</h2>
-                <button 
-                  className="text-sm font-medium text-white/80 hover:text-white border border-white/20 rounded-full px-4 py-1.5 transition-colors"
-                  onClick={() => playTrack(quickPicksTracks[0], quickPicksTracks, 'similar')}
-                >
-                  Putar semua
-                </button>
-              </div>
-              <div className="flex overflow-x-auto no-scrollbar gap-4 snap-x snap-mandatory scroll-smooth pb-4">
-                {Array.from({ length: Math.ceil(quickPicksTracks.length / 4) }).map((_, i) => {
-                  const chunk = quickPicksTracks.slice(i * 4, i * 4 + 4);
-                  return (
-                    <motion.div 
-                      key={`quickpicks-chunk-${i}`}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true, amount: 0.1 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="w-[85vw] sm:w-[400px] shrink-0 snap-center flex flex-col gap-3"
-                    >
-                      {chunk.map((track, j) => (
-                        <div 
-                          key={`quickpicks-${track.videoId}-${j}`}
-                          className="flex items-center gap-3 cursor-pointer group hover:bg-white/5 p-2 -mx-2 rounded-xl active:scale-[0.98] transition-all duration-200"
-                          onClick={() => playTrack(track, quickPicksTracks, 'similar')}
-                        >
-                          <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0">
-                            <Image src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 100)} alt={track.name} fill sizes="48px" className="object-cover" />
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Play className="w-5 h-5 text-white fill-current" />
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-white font-medium truncate text-base">{track.name}</h3>
-                            <p className="text-white/60 text-sm truncate">
-                              {Array.isArray(track.artist) ? track.artist.map(a => a.name).join(', ') : track.artist?.name}
-                            </p>
-                          </div>
-                          <button className="p-2 text-white/60 hover:text-white transition-colors">
-                            <MoreVertical className="w-5 h-5" />
-                          </button>
-                        </div>
-                      ))}
-                    </motion.div>
-                  );
-                })}
-              </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {communityPlaylists.map((playlist, index) => {
+                const id = playlist.playlistId;
+                if (!id) return null;
+                return <CommunityPlaylistCard key={`community-playlist-${id}-${index}`} playlistId={id} />;
+              })}
             </div>
-          )}
+          </section>
+        )}
 
-          {communityPlaylists.length > 0 && (
-            <div className="px-4">
-              <h2 className="text-2xl font-bold text-[#81B29A] mb-4">From the community</h2>
-              <div className="flex overflow-x-auto no-scrollbar gap-4 snap-x snap-mandatory scroll-smooth pb-4">
-                {communityPlaylists.map((playlist, i) => {
-                  const id = playlist.playlistId;
-                  if (!id) return null;
-                  return <CommunityPlaylistCard key={`community-playlist-${id}-${i}`} playlistId={id} />;
-                })}
-              </div>
-            </div>
-          )}
-
-          {artists.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-white mb-4 px-4">Tetap mendengarkan</h2>
-              <div className="flex overflow-x-auto no-scrollbar gap-6 px-4 pb-4 snap-x snap-mandatory scroll-smooth">
-                {artists.map((artist, i) => {
-                  const artistName = artist.name || 'Artist';
-                  return (
-                    <Link href={`/artist/${artist.artistId}`} key={`artist-${artist.artistId}-${i}`}>
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.1 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="flex flex-col items-center gap-3 cursor-pointer group shrink-0 snap-center hover:scale-105 active:scale-95 transition-transform duration-200"
-                      >
-                        <div className="relative w-28 h-28 rounded-full overflow-hidden shadow-lg transition-transform duration-300">
-                          <Image src={getHighResImage(artist.thumbnails?.[artist.thumbnails.length - 1]?.url, 400)} alt={artistName} fill sizes="144px" className="object-cover" />
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Play className="w-8 h-8 text-white fill-current" />
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm font-medium text-white line-clamp-1">{artistName}</div>
-                          <div className="text-xs text-white/50">Artis</div>
-                        </div>
-                      </motion.div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {categories.map((cat, i) => (
-            <HorizontalScroll key={i} title={cat.title} tracks={cat.tracks} />
+        <section className="space-y-10">
+          {categories.map((cat, index) => (
+            <HorizontalScroll key={`${cat.title}-${index}`} title={cat.title} tracks={cat.tracks} />
           ))}
-        </div>
-      )}
+        </section>
+      </div>
     </main>
   );
 }

@@ -41,7 +41,7 @@ export function CommunityPlaylistCard({ playlistId }: { playlistId: string }) {
 
   if (loading) {
     return (
-      <div className="w-[320px] h-[420px] bg-[#1C1C1E] rounded-3xl animate-pulse shrink-0 snap-center" />
+      <div className="h-[420px] w-full rounded-3xl bg-[#1C1C1E] animate-pulse" />
     );
   }
 
@@ -86,7 +86,7 @@ export function CommunityPlaylistCard({ playlistId }: { playlistId: string }) {
   return (
     <div 
       onClick={handleClick}
-      className="w-[320px] bg-[#1C1C1E] rounded-3xl p-5 shrink-0 snap-center cursor-pointer hover:bg-[#2C2C2E] transition-colors flex flex-col"
+      className="flex h-full w-full cursor-pointer flex-col rounded-3xl bg-[#181818] p-5 transition-colors hover:bg-[#222] "
     >
       <div className="flex gap-4 mb-6">
         <div className="w-24 h-24 rounded-2xl overflow-hidden relative shrink-0 shadow-lg bg-black/20">
@@ -145,7 +145,7 @@ export function CommunityPlaylistCard({ playlistId }: { playlistId: string }) {
       <div className="flex items-center gap-3 mt-auto">
         <button 
           onClick={handlePlay}
-          className="w-14 h-14 bg-[#81B29A] rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FF7A59] hover:scale-105 transition-transform"
         >
           <Play className="w-7 h-7 text-black fill-current ml-1" />
         </button>

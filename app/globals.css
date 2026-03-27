@@ -1,5 +1,64 @@
 @import "tailwindcss";
 
+:root {
+  --bg-1: #06050a;
+  --bg-2: #110f17;
+  --bg-3: #1a1723;
+  --surface: rgba(24, 24, 24, 0.86);
+  --surface-strong: rgba(18, 18, 18, 0.96);
+  --stroke: rgba(255, 255, 255, 0.08);
+  --text-soft: rgba(255, 255, 255, 0.68);
+  --accent: #ff7a59;
+  --accent-strong: #ff6347;
+  --accent-soft: #ffd4c6;
+  --accent-secondary: #f6c567;
+}
+
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(255, 122, 89, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 12%, rgba(246, 197, 103, 0.12), transparent 24%),
+    linear-gradient(180deg, #211925 0%, var(--bg-3) 18%, var(--bg-2) 42%, var(--bg-1) 100%);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 122, 89, 0.1) 0%, rgba(18, 15, 24, 0.94) 22%, #050409 100%);
+  color: white;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+::selection {
+  background: rgba(255, 122, 89, 0.38);
+  color: #170704;
+}
+
+.page-shell {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.glass-panel-strong {
+  background: var(--surface-strong);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+}
+
+.soft-text {
+  color: var(--text-soft);
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -7,5 +66,11 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding-inline: 1.5rem;
   }
 }

@@ -7,13 +7,13 @@ import { PWARegister } from '@/components/PWARegister';
 import { BackgroundProvider } from '@/components/BackgroundProvider';
 
 export const metadata: Metadata = {
-  title: 'Music App',
-  description: 'Platform streaming musik modern',
+  title: 'Melolo Player',
+  description: 'Platform streaming musik modern dengan tampilan elegan',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Music App',
+    title: 'Melolo Player',
   },
   icons: {
     apple: '/icon.svg',
@@ -21,13 +21,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0A0A0A',
+  themeColor: '#120f18',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
-      <body className="text-white antialiased pb-24 min-h-screen" suppressHydrationWarning>
+      <body className="min-h-screen pb-24 text-white antialiased md:pb-8 md:pt-24" suppressHydrationWarning>
         <BackgroundProvider />
         <PWARegister />
         {children}

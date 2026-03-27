@@ -61,7 +61,7 @@ export default function PlaylistPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-white">
         <p className="mb-4">Playlist tidak ditemukan</p>
-        <button onClick={() => router.back()} className="text-[#FA243C]">Kembali</button>
+        <button onClick={() => router.back()} className="text-[#FF7A59]">Kembali</button>
       </div>
     );
   }
@@ -101,7 +101,7 @@ export default function PlaylistPage() {
           <button 
             onClick={handlePlayAll}
             disabled={playlist.tracks.length === 0}
-            className="w-14 h-14 bg-[#81B29A] rounded-full flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50"
+            className="w-14 h-14 bg-[#FF7A59] rounded-full flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50"
           >
             <Play className="w-7 h-7 text-black fill-current ml-1" />
           </button>

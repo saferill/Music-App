@@ -120,7 +120,7 @@ export default function ArtistPage() {
               Radio
             </button>
             <button 
-              className="w-10 h-10 rounded-full bg-[#FA243C] text-white flex items-center justify-center ml-auto hover:scale-105 transition"
+              className="w-10 h-10 rounded-full bg-[#FF7A59] text-black flex items-center justify-center ml-auto hover:scale-105 transition"
               onClick={() => {
                 if (artist.topSongs?.length > 0) {
                   playTrack(artist.topSongs[0], artist.topSongs);

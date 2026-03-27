@@ -40,15 +40,15 @@ export function TrackItem({ track, queue }: { track: Track; queue?: Track[] }) {
         {isCurrent && isPlaying && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="flex gap-0.5 items-end h-3">
-              <div className="w-1 bg-[#FA243C] animate-[bounce_1s_infinite_0ms]" />
-              <div className="w-1 bg-[#FA243C] animate-[bounce_1s_infinite_200ms]" />
-              <div className="w-1 bg-[#FA243C] animate-[bounce_1s_infinite_400ms]" />
+              <div className="w-1 bg-[#FF7A59] animate-[bounce_1s_infinite_0ms]" />
+              <div className="w-1 bg-[#FF7A59] animate-[bounce_1s_infinite_200ms]" />
+              <div className="w-1 bg-[#FF7A59] animate-[bounce_1s_infinite_400ms]" />
             </div>
           </div>
         )}
       </div>
       <div className="ml-4 flex-1 min-w-0 border-b border-white/5 pb-3 group-hover:border-transparent transition-colors">
-        <div className={`font-medium truncate ${isCurrent ? 'text-[#FA243C]' : 'text-white'}`}>
+        <div className={`font-medium truncate ${isCurrent ? 'text-[#FF7A59]' : 'text-white'}`}>
           {track.name}
         </div>
         <div className="text-sm text-gray-400 truncate">{artistName}</div>

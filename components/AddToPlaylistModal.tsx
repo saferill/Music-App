@@ -110,7 +110,7 @@ export function AddToPlaylistModal() {
                 value={newPlaylistName}
                 onChange={(e) => setNewPlaylistName(e.target.value)}
                 placeholder="Nama playlist baru"
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#FA243C] transition-colors"
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#FF7A59] transition-colors"
                 autoFocus
               />
               <div className="flex gap-2">
@@ -123,7 +123,7 @@ export function AddToPlaylistModal() {
                 <button
                   onClick={handleCreateAndAdd}
                   disabled={!newPlaylistName.trim()}
-                  className="flex-1 py-3 bg-[#FA243C] text-white rounded-xl font-medium disabled:opacity-50 transition-colors"
+                  className="flex-1 py-3 bg-[#FF7A59] text-black rounded-xl font-semibold disabled:opacity-50 transition-colors"
                 >
                   Buat & Tambah
                 </button>
