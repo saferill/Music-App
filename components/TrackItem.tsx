@@ -6,7 +6,15 @@ import Image from 'next/image';
 import { getHighResImage } from '@/lib/utils';
 import { useState } from 'react';
 
-export function TrackItem({ track, queue }: { track: Track; queue?: Track[] }) {
+export function TrackItem({
+  track,
+  queue,
+  playMode,
+}: {
+  track: Track;
+  queue?: Track[];
+  playMode?: 'playlist' | 'similar';
+}) {
   const playTrack = usePlayerStore((state) => state.playTrack);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
@@ -16,11 +24,13 @@ export function TrackItem({ track, queue }: { track: Track; queue?: Track[] }) {
 
   const thumbnail = getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 200);
   const artistName = Array.isArray(track.artist) ? track.artist.map(a => a.name).join(', ') : track.artist?.name || 'Unknown Artist';
+  const mode = playMode || (queue?.length ? 'playlist' : 'similar');
+  const handlePlay = () => playTrack(track, mode === 'playlist' ? queue : undefined, mode);
 
   return (
     <div
       className="flex items-center p-3 hover:bg-white/5 rounded-xl cursor-pointer group transition-colors"
-      onClick={() => playTrack(track, queue)}
+      onClick={handlePlay}
     >
       <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0 bg-[#222222]">
         {!imageError ? (

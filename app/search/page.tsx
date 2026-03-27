@@ -1,14 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Track } from '@/lib/store';
 import { db, RecentSearch } from '@/lib/db';
 import { TrackItem } from '@/components/TrackItem';
 import { ArtistItem } from '@/components/ArtistItem';
-import { Search as SearchIcon, Loader2, ArrowLeft, X, ArrowUpLeft, History } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Search as SearchIcon, ArrowLeft, X, ArrowUpLeft, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
 import { SearchSkeleton } from '@/components/SearchSkeleton';
 
 export default function Search() {
@@ -28,6 +25,7 @@ export default function Search() {
       const searches = await db.getRecentSearches();
       setRecentSearches(searches);
     };
+
     loadRecentSearches();
   }, []);
 
@@ -46,7 +44,7 @@ export default function Search() {
         setSuggestions([]);
       }
     };
-    
+
     const debounceTimer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimer);
   }, [query]);
@@ -55,8 +53,7 @@ export default function Search() {
     if (!searchQuery.trim()) return;
     setLoading(true);
     setIsFocused(false);
-    
-    // Save to recent searches
+
     await db.addRecentSearch(searchQuery);
     const searches = await db.getRecentSearches();
     setRecentSearches(searches);
@@ -84,141 +81,159 @@ export default function Search() {
     setRecentSearches(searches);
   };
 
+  const filteredResults = results.filter((item) => {
+    if (activeTab === 'Semua') return true;
+    if (activeTab === 'Lagu') return item.type === 'SONG';
+    if (activeTab === 'Video') return item.type === 'VIDEO';
+    if (activeTab === 'Artis') return item.type === 'ARTIST';
+    return false;
+  });
+
   return (
-    <main className="min-h-screen pt-6 pb-24">
-      <div className="px-4 mb-4 flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-white hover:bg-white/10 p-2 rounded-full transition-colors">
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <form onSubmit={onSubmit} className="relative flex-1">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-            placeholder="Mencari"
-            autoFocus
-            className="w-full bg-[#2A2A2A] text-white rounded-full py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-white/30 transition-all border border-white/5"
-          />
-          {query && (
-            <button 
-              type="button"
-              onClick={() => {
-                setQuery('');
-                setResults([]);
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+    <main className="min-h-screen pb-32 md:pb-16">
+      <div className="page-shell pt-4 md:pt-6">
+        <section className="glass-panel-strong sticky top-3 z-20 rounded-[28px] p-3 md:static md:p-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
             >
-              <X className="w-5 h-5" />
+              <ArrowLeft className="h-6 w-6" />
             </button>
-          )}
-        </form>
-      </div>
 
-      <div className="flex overflow-x-auto no-scrollbar gap-3 mb-6 px-4 snap-x snap-mandatory scroll-smooth">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors border snap-center ${
-              activeTab === tab 
-                ? 'bg-white/20 text-white border-white/20' 
-                : 'bg-transparent text-white/70 border-white/10 hover:bg-white/5'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+            <form onSubmit={onSubmit} className="relative flex-1">
+              <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/45" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                placeholder="Cari lagu, artis, atau playlist"
+                autoFocus
+                className="w-full rounded-[22px] border border-white/8 bg-white/6 py-3 pl-12 pr-11 text-white placeholder:text-white/35 transition-all focus:outline-none focus:ring-1 focus:ring-[#FF7A59]/40"
+              />
 
-      {query && isFocused && (
-        <div className="mb-6">
-          {suggestions.map((suggestion, index) => (
-            <div 
-              key={index}
-              className="flex items-center justify-between px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors"
-              onClick={() => {
-                setQuery(suggestion);
-                handleSearch(suggestion);
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <SearchIcon className="w-5 h-5 text-white/50" />
-                <span className="text-white text-base">{suggestion}</span>
-              </div>
-              <ArrowUpLeft className="w-5 h-5 text-white/50" />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!query && !loading && results.length === 0 && recentSearches.length > 0 && (
-        <div className="mb-6">
-          {recentSearches.map((search, index) => (
-            <div 
-              key={`recent-${index}`}
-              className="flex items-center justify-between px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors"
-              onClick={() => {
-                setQuery(search.query);
-                handleSearch(search.query);
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <History className="w-6 h-6 text-white/50" />
-                <span className="text-white text-base">{search.query}</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <button 
-                  onClick={(e) => handleRemoveRecentSearch(e, search.query)}
-                  className="text-white/50 hover:text-white p-1"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setQuery(search.query);
-                    setIsFocused(true);
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery('');
+                    setResults([]);
                   }}
-                  className="text-white/50 hover:text-white p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
                 >
-                  <ArrowUpLeft className="w-5 h-5" />
+                  <X className="h-5 w-5" />
                 </button>
-              </div>
-            </div>
+              )}
+            </form>
+          </div>
+        </section>
+
+        <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors snap-center ${
+                activeTab === tab
+                  ? 'border-transparent bg-[#FF7A59] text-black'
+                  : 'border-white/10 bg-transparent text-white/70 hover:bg-white/5'
+              }`}
+            >
+              {tab}
+            </button>
           ))}
         </div>
-      )}
 
-      <div className="px-4">
-        {loading ? (
-          <SearchSkeleton />
-        ) : results.length > 0 ? (
-          <div className="space-y-1 border-t border-white/10 pt-4">
-            {results.filter(item => {
-              if (activeTab === 'Semua') return true;
-              if (activeTab === 'Lagu') return item.type === 'SONG';
-              if (activeTab === 'Video') return item.type === 'VIDEO';
-              if (activeTab === 'Artis') return item.type === 'ARTIST';
-              return false;
-            }).map((item, index) => (
-              item.type === 'ARTIST' 
-                ? <ArtistItem key={`artist-${item.artistId}-${index}`} artist={item} />
-                : <TrackItem key={`track-${item.videoId}-${index}`} track={item} queue={results.filter(r => r.type !== 'ARTIST')} />
+        {query && isFocused && suggestions.length > 0 && (
+          <div className="glass-panel mt-4 overflow-hidden rounded-[24px]">
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                className="flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-white/5"
+                onClick={() => {
+                  setQuery(suggestion);
+                  handleSearch(suggestion);
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <SearchIcon className="h-5 w-5 text-white/50" />
+                  <span className="text-base text-white">{suggestion}</span>
+                </div>
+                <ArrowUpLeft className="h-5 w-5 text-white/50" />
+              </div>
             ))}
           </div>
-        ) : query ? (
-          <div className="flex flex-col items-center justify-center mt-20 text-white/50">
-            <SearchIcon className="w-16 h-16 mb-4 opacity-20" />
-            <p>Tidak ada hasil yang ditemukan</p>
+        )}
+
+        {!query && !loading && results.length === 0 && recentSearches.length > 0 && (
+          <div className="glass-panel mt-4 overflow-hidden rounded-[24px]">
+            {recentSearches.map((search, index) => (
+              <div
+                key={`recent-${index}`}
+                className="flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-white/5"
+                onClick={() => {
+                  setQuery(search.query);
+                  handleSearch(search.query);
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <History className="h-5 w-5 text-white/50" />
+                  <span className="text-base text-white">{search.query}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={(e) => handleRemoveRecentSearch(e, search.query)}
+                    className="p-1 text-white/50 hover:text-white"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuery(search.query);
+                      setIsFocused(true);
+                    }}
+                    className="p-1 text-white/50 hover:text-white"
+                  >
+                    <ArrowUpLeft className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ) : recentSearches.length === 0 ? (
-          <div className="flex flex-col items-center justify-center mt-20 text-white/50">
-            <SearchIcon className="w-16 h-16 mb-4 opacity-20" />
-            <p>Cari lagu, album, atau artis</p>
-          </div>
-        ) : null}
+        )}
+
+        <div className="mt-4">
+          {loading ? (
+            <SearchSkeleton />
+          ) : filteredResults.length > 0 ? (
+            <div className="glass-panel rounded-[28px] p-2 sm:p-3">
+              {filteredResults.map((item, index) =>
+                item.type === 'ARTIST' ? (
+                  <ArtistItem key={`artist-${item.artistId}-${index}`} artist={item} />
+                ) : (
+                  <TrackItem
+                    key={`track-${item.videoId}-${index}`}
+                    track={item}
+                    playMode="similar"
+                  />
+                )
+              )}
+            </div>
+          ) : query ? (
+            <div className="mt-20 flex flex-col items-center justify-center text-white/50">
+              <SearchIcon className="mb-4 h-16 w-16 opacity-20" />
+              <p>Tidak ada hasil yang ditemukan</p>
+            </div>
+          ) : recentSearches.length === 0 ? (
+            <div className="mt-20 flex flex-col items-center justify-center text-white/50">
+              <SearchIcon className="mb-4 h-16 w-16 opacity-20" />
+              <p>Cari lagu, album, atau artis</p>
+            </div>
+          ) : null}
+        </div>
       </div>
     </main>
   );

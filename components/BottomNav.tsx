@@ -27,7 +27,7 @@ export function BottomNav() {
               </div>
               <div className="min-w-0">
                 <div className="text-[11px] uppercase tracking-[0.38em] text-white/35">Music Player</div>
-                <div className="truncate text-lg font-semibold text-white">Melolo Player</div>
+                <div className="truncate text-lg font-semibold text-white">Music App</div>
               </div>
             </Link>
 
@@ -71,26 +71,33 @@ export function BottomNav() {
           </div>
         </div>
       </div>
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/5 bg-black/70 pb-safe backdrop-blur-xl md:hidden">
-        <div className="flex h-16 items-center justify-around px-2">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'flex h-full w-full flex-col items-center justify-center space-y-1 transition-colors',
-                  isActive ? 'text-white' : 'text-white/50 hover:text-white/80'
-                )}
-              >
-                <div className={cn('rounded-full px-4 py-1 transition-all', isActive && 'bg-[#ff7a59] text-black')}>
-                  <item.icon className={cn('h-6 w-6', isActive && 'fill-current')} strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-                <span className="text-[10px] font-medium">{item.name}</span>
-              </Link>
-            );
-          })}
+      <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:hidden">
+        <div className="glass-panel pointer-events-auto rounded-[28px] border border-white/8 bg-black/75 px-2 py-2 shadow-2xl backdrop-blur-xl">
+          <div className="grid h-16 grid-cols-4 gap-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    'flex h-full flex-col items-center justify-center gap-1 rounded-[22px] transition-colors',
+                    isActive ? 'text-white' : 'text-white/50 hover:text-white/80'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'rounded-full px-3 py-1 transition-all',
+                      isActive && 'bg-[#ff7a59] text-black shadow-lg'
+                    )}
+                  >
+                    <item.icon className={cn('h-5 w-5', isActive && 'fill-current')} strokeWidth={isActive ? 2.5 : 2} />
+                  </div>
+                  <span className="text-[10px] font-medium leading-none">{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </>
