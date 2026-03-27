@@ -92,7 +92,7 @@ export function OnboardingGate() {
               </div>
 
               <h1 className="mt-4 text-3xl font-semibold text-white sm:text-5xl">
-                Biar Melolo terasa kayak punyamu sendiri.
+                Biar Sonara terasa kayak punyamu sendiri.
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-white/68 sm:text-base">
                 Pilih artis dan genre favoritmu dulu. Setelah ini beranda akan lebih personal, dan layar setup ini

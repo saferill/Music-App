@@ -1,17 +1,17 @@
 <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" width="512" height="512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1C1627"/>
-      <stop offset="100%" stop-color="#08070C"/>
+      <stop offset="0%" stop-color="#130F19"/>
+      <stop offset="100%" stop-color="#08070D"/>
     </linearGradient>
-    <linearGradient id="brand" x1="8%" y1="12%" x2="92%" y2="88%">
-      <stop offset="0%" stop-color="#FF9A62"/>
-      <stop offset="55%" stop-color="#FF6B57"/>
-      <stop offset="100%" stop-color="#F6C567"/>
+    <linearGradient id="brand" x1="18%" y1="8%" x2="82%" y2="92%">
+      <stop offset="0%" stop-color="#FFC36B"/>
+      <stop offset="48%" stop-color="#FF7A59"/>
+      <stop offset="100%" stop-color="#FF5D7A"/>
     </linearGradient>
-    <radialGradient id="glow" cx="26%" cy="22%" r="72%">
-      <stop offset="0%" stop-color="#FFB287" stop-opacity="0.72"/>
-      <stop offset="45%" stop-color="#FF7A59" stop-opacity="0.26"/>
+    <radialGradient id="glow" cx="22%" cy="18%" r="70%">
+      <stop offset="0%" stop-color="#FFBE8A" stop-opacity="0.72"/>
+      <stop offset="42%" stop-color="#FF7A59" stop-opacity="0.24"/>
       <stop offset="100%" stop-color="#FF7A59" stop-opacity="0"/>
     </radialGradient>
     <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
@@ -19,14 +19,18 @@
     </filter>
   </defs>
   <rect width="512" height="512" rx="128" fill="url(#bg)"/>
-  <circle cx="166" cy="142" r="190" fill="url(#glow)"/>
-  <circle cx="404" cy="396" r="126" fill="#FFFFFF" opacity="0.04"/>
+  <circle cx="160" cy="138" r="182" fill="url(#glow)"/>
+  <circle cx="398" cy="392" r="118" fill="#FFFFFF" opacity="0.04"/>
   <g filter="url(#shadow)">
     <path
-      d="M132 352V160C132 147 142 136 155 136C164 136 173 141 178 149L256 266L334 149C339 141 348 136 357 136C370 136 380 147 380 160V352H332V231L276 315C271 322 264 326 256 326C248 326 241 322 236 315L180 231V352H132Z"
+      d="M348 159C332 145 309 137 282 137C225 137 184 167 184 211C184 248 212 270 269 286C312 298 329 309 329 329C329 351 308 366 274 366C243 366 212 353 186 327L150 364C180 398 224 418 274 418C339 418 384 384 384 332C384 288 356 264 299 248C255 236 239 226 239 208C239 191 257 178 285 178C310 178 334 187 353 203L381 170L348 159Z"
       fill="url(#brand)"
     />
+    <path
+      d="M323 125C354 125 379 150 379 181V225H334V181C334 175 329 170 323 170C317 170 312 175 312 181V247H267V181C267 150 292 125 323 125Z"
+      fill="url(#brand)"
+      opacity="0.92"
+    />
   </g>
-  <path d="M394 118L414 138" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
-  <path d="M414 118L394 138" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="393" cy="117" r="16" fill="#FFFFFF" fill-opacity="0.3"/>
 </svg>

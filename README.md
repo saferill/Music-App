@@ -1,6 +1,6 @@
-# Music Player
+# Sonara
 
-Aplikasi pemutar musik modern yang dibangun menggunakan Next.js. Dirancang untuk memberikan pengalaman mendengarkan musik yang mulus dan personal, memungkinkan Anda menjelajahi jutaan lagu, mengelola koleksi musik Anda, dan menemukan artis baru dengan antarmuka yang intuitif dan responsif.
+Sonara adalah aplikasi pemutar musik modern yang dibangun menggunakan Next.js. Dirancang untuk memberikan pengalaman mendengarkan musik yang mulus dan personal, memungkinkan Anda menjelajahi jutaan lagu, mengelola koleksi musik Anda, dan menemukan artis baru dengan antarmuka yang intuitif dan responsif.
 
 ## Fitur
 - **Pengelolaan Playlist:** Buat, edit, dan hapus playlist kustom Anda. Tambahkan lagu dari berbagai sumber dan nikmati pemutaran tanpa henti. Aplikasi ini mendukung playlist lokal dan eksternal (misalnya, dari YouTube Music API).

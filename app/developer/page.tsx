@@ -33,7 +33,7 @@ export default function DeveloperPage() {
             <div className="relative w-full h-full rounded-[50%_50%_40%_60%_/_60%_40%_50%_50%] overflow-hidden border-2 border-[#FF7A59]/25 z-10 bg-[#15121B]">
               <Image 
                 src="/icon.svg"
-                alt="Melolo logo" 
+                alt="Sonara logo" 
                 fill 
                 sizes="192px"
                 className="object-contain p-7"

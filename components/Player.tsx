@@ -74,7 +74,7 @@ export function Player() {
   }, [currentTrack]);
 
   useEffect(() => {
-    if (!currentTrack || lyricsStatus === 'loading' || lyricsStatus === 'ready') return;
+    if (!currentTrack) return;
 
     const artistLabel = Array.isArray(currentTrack.artist)
       ? currentTrack.artist.map((artist) => artist.name).join(', ')
@@ -90,54 +90,48 @@ export function Player() {
       params.set('duration', String(currentTrack.duration));
     }
 
-    const loadLyrics = async () => {
-      await Promise.resolve();
-
+    lyricLineRefs.current = [];
+    queueMicrotask(() => {
       if (controller.signal.aborted) return;
 
-      lyricLineRefs.current = [];
       setLyricsState({
         trackId: currentTrack.videoId,
         data: null,
         status: 'loading',
       });
+    });
 
-      fetch(`/api/lyrics?${params.toString()}`, { signal: controller.signal })
-        .then((res) => res.json())
-        .then((data) => {
-          if (controller.signal.aborted) return;
+    fetch(`/api/lyrics?${params.toString()}`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        if (controller.signal.aborted) return;
 
-          if (data?.lyrics?.lines?.length) {
-            setLyricsState({
-              trackId: currentTrack.videoId,
-              data: data.lyrics,
-              status: 'ready',
-            });
-          } else {
-            setLyricsState({
-              trackId: currentTrack.videoId,
-              data: null,
-              status: 'unavailable',
-            });
-          }
-        })
-        .catch(() => {
-          if (!controller.signal.aborted) {
-            setLyricsState({
-              trackId: currentTrack.videoId,
-              data: null,
-              status: 'unavailable',
-            });
-          }
-        });
-    };
-
-    if (lyricsStatus === 'idle') {
-      void loadLyrics();
-    }
+        if (data?.lyrics?.lines?.length) {
+          setLyricsState({
+            trackId: currentTrack.videoId,
+            data: data.lyrics,
+            status: 'ready',
+          });
+        } else {
+          setLyricsState({
+            trackId: currentTrack.videoId,
+            data: null,
+            status: 'unavailable',
+          });
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setLyricsState({
+            trackId: currentTrack.videoId,
+            data: null,
+            status: 'unavailable',
+          });
+        }
+      });
 
     return () => controller.abort();
-  }, [currentTrack, lyricsState.trackId, lyricsStatus]);
+  }, [currentTrack]);
 
   const handleLike = useCallback(
     async (e?: React.MouseEvent) => {
@@ -159,8 +153,12 @@ export function Player() {
       playerRef.current = event.target;
       const duration = await event.target.getDuration();
       setDuration(duration || 0);
+
+      if (isPlaying && typeof event.target.playVideo === 'function') {
+        event.target.playVideo();
+      }
     },
-    [setDuration]
+    [isPlaying, setDuration]
   );
 
   const onStateChange = useCallback(
@@ -242,16 +240,18 @@ export function Player() {
 
   return (
     <>
-      <div className="hidden">
+      <div className="pointer-events-none fixed -left-[9999px] top-0 h-px w-px overflow-hidden opacity-0">
         <YouTube
           videoId={currentTrack.videoId}
           opts={{
-            height: '0',
-            width: '0',
+            height: '1',
+            width: '1',
             playerVars: {
               autoplay: 1,
               controls: 0,
               playsinline: 1,
+              rel: 0,
+              modestbranding: 1,
             },
           }}
           onReady={onReady}
@@ -383,7 +383,7 @@ export function Player() {
                     {lyricsStatus === 'loading' ? (
                       <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-white/60">
                         <Loader2 className="h-6 w-6 animate-spin text-[#FF7A59]" />
-                        <p className="text-sm sm:text-base">Melolo lagi cari lirik terbaik untuk lagu ini.</p>
+                        <p className="text-sm sm:text-base">Sonara lagi cari lirik terbaik untuk lagu ini.</p>
                       </div>
                     ) : lyrics ? (
                       <div className="space-y-4 text-center">
@@ -419,7 +419,7 @@ export function Player() {
                       </div>
                     ) : (
                       <div className="flex h-full items-center justify-center text-center text-sm leading-7 text-white/55 sm:text-base">
-                        Lirik belum ketemu untuk lagu ini. Melolo sudah coba cari dari beberapa sumber, jadi kalau
+                        Lirik belum ketemu untuk lagu ini. Sonara sudah coba cari dari beberapa sumber, jadi kalau
                         provider menambah data lagu ini nanti tombol lirik akan ikut hidup.
                       </div>
                     )}

@@ -15,6 +15,51 @@ export interface HistoryItem {
   playedAt: number;
 }
 
+const prefetchedLyrics = new Set<string>();
+
+function getArtistLabel(track: Track) {
+  return Array.isArray(track.artist)
+    ? track.artist.map((artist) => artist.name).filter(Boolean).join(', ')
+    : track.artist?.name || '';
+}
+
+function getLyricsPrefetchKey(track: Track) {
+  return [track.videoId, track.name, getArtistLabel(track), track.duration || ''].join(':');
+}
+
+function primeLyrics(track?: Track | null) {
+  if (typeof window === 'undefined' || !track?.videoId) return;
+
+  const key = getLyricsPrefetchKey(track);
+  if (prefetchedLyrics.has(key)) return;
+
+  prefetchedLyrics.add(key);
+  if (prefetchedLyrics.size > 500) prefetchedLyrics.clear();
+
+  const params = new URLSearchParams({
+    id: track.videoId,
+    title: track.name,
+    artist: getArtistLabel(track),
+  });
+
+  if (track.duration) {
+    params.set('duration', String(track.duration));
+  }
+
+  void fetch(`/api/lyrics?${params.toString()}`).catch(() => {
+    prefetchedLyrics.delete(key);
+  });
+}
+
+function primeQueueNeighbor(queue: Track[] | undefined, index: number) {
+  if (!queue?.length) return;
+
+  const nextTrack = queue[index + 1];
+  if (nextTrack) {
+    primeLyrics(nextTrack);
+  }
+}
+
 interface PlayerState {
   currentTrack: Track | null;
   queue: Track[];
@@ -78,6 +123,7 @@ export const usePlayerStore = create<PlayerState>()(
           duration: t.duration,
           isExplicit: t.isExplicit,
         })) : undefined;
+        const queueIndex = queue ? Math.max(0, queue.findIndex((t) => t.videoId === track.videoId)) : 0;
 
         const state = get();
         const newHistoryItem = { track, playedAt: Date.now() };
@@ -92,12 +138,15 @@ export const usePlayerStore = create<PlayerState>()(
           currentTrack: track,
           isPlaying: true,
           queue: queue || [track],
-          queueIndex: queue ? queue.findIndex((t) => t.videoId === track.videoId) : 0,
+          queueIndex,
           progress: 0,
           playContext: context,
           history: newHistory,
           playCounts: newPlayCounts,
         });
+
+        primeLyrics(track);
+        primeQueueNeighbor(queue, queueIndex);
       },
 
       playNext: async () => {
@@ -122,6 +171,9 @@ export const usePlayerStore = create<PlayerState>()(
             history: newHistory,
             playCounts: newPlayCounts,
           });
+
+          primeLyrics(nextTrack);
+          primeQueueNeighbor(queue, nextIndex);
         } else {
           if (playContext === 'similar' && currentTrack) {
             try {
@@ -149,6 +201,9 @@ export const usePlayerStore = create<PlayerState>()(
                     history: newHistory,
                     playCounts: newPlayCounts,
                   });
+
+                  primeLyrics(nextTrack);
+                  primeLyrics(nextTracks[1]);
                   return;
                 }
               }
@@ -186,6 +241,8 @@ export const usePlayerStore = create<PlayerState>()(
             history: newHistory,
             playCounts: newPlayCounts,
           });
+
+          primeLyrics(prevTrack);
         }
       },
 

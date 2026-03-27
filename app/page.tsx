@@ -242,7 +242,7 @@ export default function Home() {
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#FF7A59]/30 bg-[#FF7A59]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[#FFD4C6]">
                 <Sparkles className="h-3.5 w-3.5" />
-                Melolo Picks
+                Sonara Picks
               </div>
               <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl md:text-5xl">Beranda</h1>
               <p className="mt-3 max-w-xl text-base leading-7 text-white/70">

@@ -23,11 +23,11 @@ export function BottomNav() {
           <div className="pointer-events-auto flex items-center justify-between rounded-full border border-white/8 bg-black/75 px-4 py-3 shadow-2xl backdrop-blur-xl">
             <Link href="/" className="flex min-w-0 items-center gap-3">
               <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[#15121b] shadow-lg">
-                <Image src="/icon.svg" alt="Melolo logo" fill sizes="44px" className="object-cover" />
+                <Image src="/icon.svg" alt="Sonara logo" fill sizes="44px" className="object-cover" />
               </div>
               <div className="min-w-0">
-                <div className="text-[11px] uppercase tracking-[0.38em] text-white/35">Music Player</div>
-                <div className="truncate text-lg font-semibold text-white">Music App</div>
+                <div className="text-[11px] uppercase tracking-[0.38em] text-white/35">Music Streaming</div>
+                <div className="truncate text-lg font-semibold text-white">Sonara</div>
               </div>
             </Link>
 

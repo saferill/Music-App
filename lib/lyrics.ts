@@ -4,7 +4,7 @@ export interface LyricLine {
 }
 
 export interface LyricsPayload {
-  source: 'ytmusic' | 'lrclib' | 'lyricsovh';
+  source: 'ytmusic' | 'lrclib' | 'lyricsovh' | 'kugou';
   providerLabel: string;
   text: string;
   lines: LyricLine[];
@@ -29,7 +29,11 @@ export function parseLrcLyrics(input?: string | null): LyricLine[] {
 
   rows.forEach((row) => {
     const matches = [...row.matchAll(/\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/g)];
-    const text = row.replace(/\[[^\]]+\]/g, '').trim();
+    const text = row
+      .replace(/\[[^\]]+\]/g, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
 
     if (!matches.length || !text) return;
 
