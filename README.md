@@ -22,3 +22,28 @@ Sonara adalah aplikasi pemutar musik modern yang dibangun menggunakan Next.js. D
    `npm run dev`
 
 Ini akan memulai server pengembangan di `http://localhost:3000`.
+
+## Android App
+
+Project ini juga sudah disiapkan sebagai aplikasi Android menggunakan Capacitor.
+
+### Build APK debug
+
+1. Pastikan Android SDK dan Android Studio sudah terpasang.
+2. Sinkronkan project Android:
+   `npx cap sync android`
+3. Build APK debug:
+   Dari folder `android`, jalankan `gradlew.bat assembleDebug`
+
+File hasilnya akan ada di:
+`android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Build release
+
+Untuk release signed, buat file `android/keystore.properties` berdasarkan `android/keystore.properties.example`, lalu isi path ke file keystore dan password-nya.
+
+Setelah itu, dari folder `android`, jalankan:
+`gradlew.bat assembleRelease`
+
+Jika ingin format bundle untuk Play Store:
+`gradlew.bat bundleRelease`

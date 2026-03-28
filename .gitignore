@@ -6,3 +6,6 @@ coverage/
 .env*
 !.env.example
 .tmp_aplayer/
+android/keystore.properties
+*.jks
+*.keystore
