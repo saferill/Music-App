@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Disc3, Loader2, Plus, Search, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { readTasteProfile, saveTasteProfile } from '@/lib/taste-profile';
+import { getApiBaseUrl } from '@/lib/config';
 
 const featuredArtists = [
   'Hindia',
@@ -105,7 +106,7 @@ export function OnboardingGate() {
       setArtistLoading(true);
 
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=artist`, {
+        const response = await fetch(`${getApiBaseUrl()}/api/search?q=${encodeURIComponent(query)}&type=artist`, {
           signal: controller.signal,
         });
         const data = await response.json();

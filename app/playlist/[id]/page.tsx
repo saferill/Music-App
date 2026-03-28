@@ -7,6 +7,7 @@ import { usePlayerStore, Track } from '@/lib/store';
 import { Play, ArrowLeft, MoreHorizontal, Radio, Music } from 'lucide-react';
 import Image from 'next/image';
 import { TrackItem } from '@/components/TrackItem';
+import { getApiBaseUrl } from '@/lib/config';
 
 interface Playlist {
   id: string;
@@ -32,7 +33,7 @@ export default function PlaylistPage() {
           setPlaylist(data as Playlist);
         } else {
           // Try fetching from YouTube Music API
-          const res = await fetch(`/api/ytplaylist?id=${id}`);
+          const res = await fetch(`${getApiBaseUrl()}/api/ytplaylist?id=${id}`);
           if (res.ok) {
             const ytData = await res.json();
             setPlaylist({

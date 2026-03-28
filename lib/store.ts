@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { normalizeTrack } from '@/lib/media';
+import { getApiBaseUrl } from '@/lib/config';
 
 export interface Track {
   videoId: string;
@@ -47,7 +48,7 @@ function primeLyrics(track?: Track | null) {
     params.set('duration', String(track.duration));
   }
 
-  void fetch(`/api/lyrics?${params.toString()}`).catch(() => {
+  void fetch(`${getApiBaseUrl()}/api/lyrics?${params.toString()}`).catch(() => {
     prefetchedLyrics.delete(key);
   });
 }
@@ -183,7 +184,7 @@ export const usePlayerStore = create<PlayerState>()(
         } else {
           if (playContext === 'similar' && currentTrack) {
             try {
-              const res = await fetch(`/api/upnext?id=${currentTrack.videoId}`);
+              const res = await fetch(`${getApiBaseUrl()}/api/upnext?id=${currentTrack.videoId}`);
               const data = await res.json();
               if (Array.isArray(data) && data.length > 0) {
                 const nextTracks = data.filter((t: any) => t.videoId !== currentTrack.videoId);

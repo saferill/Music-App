@@ -11,6 +11,7 @@ import { HomeSkeleton } from '@/components/HomeSkeleton';
 import { HorizontalScroll } from '@/components/HorizontalScroll';
 import { getHighResImage } from '@/lib/utils';
 import { readTasteProfile, TasteProfile } from '@/lib/taste-profile';
+import { getApiBaseUrl } from '@/lib/config';
 
 const pills = ['Chill', 'Focus', 'Commute', 'Gaming', 'Energize', 'Party', 'Feel good', 'Romance', 'Workout', 'Sleep', 'Sad', 'Happy', 'Nostalgia', 'Acoustic', 'Pop', 'Rock'];
 
@@ -86,7 +87,7 @@ export default function Home() {
 
         const results = [];
         for (const { title, q } of queries) {
-          const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=song`);
+          const res = await fetch(`${getApiBaseUrl()}/api/search?q=${encodeURIComponent(q)}&type=song`);
           const data = await res.json();
           results.push({ title, tracks: data.slice(0, 10) });
         }
@@ -116,7 +117,7 @@ export default function Home() {
           const chunkResults = await Promise.all(
             chunk.map(async ({ key, title, q, type }) => {
               try {
-                const url = type ? `/api/search?q=${encodeURIComponent(q)}&type=${type}` : `/api/search?q=${encodeURIComponent(q)}`;
+                const url = type ? `${getApiBaseUrl()}/api/search?q=${encodeURIComponent(q)}&type=${type}` : `${getApiBaseUrl()}/api/search?q=${encodeURIComponent(q)}`;
                 const res = await fetch(url);
                 if (!res.ok) return { key, title, data: [] };
                 const data = await res.json();

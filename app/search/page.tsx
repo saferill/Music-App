@@ -7,6 +7,7 @@ import { ArtistItem } from '@/components/ArtistItem';
 import { Search as SearchIcon, ArrowLeft, X, ArrowUpLeft, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { SearchSkeleton } from '@/components/SearchSkeleton';
+import { getApiBaseUrl } from '@/lib/config';
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -40,7 +41,7 @@ export default function Search() {
     const fetchSuggestions = async () => {
       if (query.trim()) {
         try {
-          const res = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`);
+          const res = await fetch(`${getApiBaseUrl()}/api/suggest?q=${encodeURIComponent(query)}`);
           const data = await res.json();
           setSuggestions(data);
         } catch (error) {
@@ -66,7 +67,7 @@ export default function Search() {
     setRecentSearches(searches);
 
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`${getApiBaseUrl()}/api/search?q=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
       setResults(data);
     } catch (error) {

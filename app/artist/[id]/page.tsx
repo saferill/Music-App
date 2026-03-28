@@ -8,6 +8,7 @@ import { getHighResImage } from '@/lib/utils';
 import { TrackItem } from '@/components/TrackItem';
 import { usePlayerStore } from '@/lib/store';
 import { db } from '@/lib/db';
+import { getApiBaseUrl } from '@/lib/config';
 
 export default function ArtistPage() {
   const params = useParams();
@@ -21,7 +22,7 @@ export default function ArtistPage() {
   useEffect(() => {
     const fetchArtist = async () => {
       try {
-        const res = await fetch(`/api/artist?id=${params.id}`);
+        const res = await fetch(`${getApiBaseUrl()}/api/artist?id=${params.id}`);
         const data = await res.json();
         setArtist(data);
         

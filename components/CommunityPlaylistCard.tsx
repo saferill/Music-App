@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { usePlayerStore, Track } from '@/lib/store';
 import { db } from '@/lib/db';
+import { getApiBaseUrl } from '@/lib/config';
 
 interface PlaylistData {
   playlistId: string;
@@ -22,7 +23,7 @@ export function CommunityPlaylistCard({ playlistId }: { playlistId: string }) {
   useEffect(() => {
     const fetchPlaylist = async () => {
       try {
-        const res = await fetch(`/api/ytplaylist?id=${playlistId}`);
+        const res = await fetch(`${getApiBaseUrl()}/api/ytplaylist?id=${playlistId}`);
         if (res.ok) {
           const data = await res.json();
           setPlaylist({

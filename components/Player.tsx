@@ -28,6 +28,7 @@ import { cn, getHighResImage } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { LyricsPayload } from '@/lib/lyrics';
+import { getApiBaseUrl } from '@/lib/config';
 
 type LyricsStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
 
@@ -105,7 +106,7 @@ export function Player() {
       });
     });
 
-    fetch(`/api/lyrics?${params.toString()}`, { signal: controller.signal })
+    fetch(`${getApiBaseUrl()}/api/lyrics?${params.toString()}`, { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         if (controller.signal.aborted) return;
