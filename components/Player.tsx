@@ -294,17 +294,15 @@ export function Player() {
     });
   }, [currentTrack, showLyrics]);
 
-  if (!currentTrack) return null;
-
-  const trackTitle = currentTrack.name?.trim() || 'Unknown';
-  const thumbnail = getHighResImage(currentTrack.thumbnails?.[currentTrack.thumbnails.length - 1]?.url, 800);
-  const artistName = Array.isArray(currentTrack.artist)
-    ? currentTrack.artist.map((a) => a.name).join(', ')
-    : currentTrack.artist?.name || 'Unknown Artist';
-
   // Update Media Session Metadata
   useEffect(() => {
     if (!currentTrack || typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    const trackTitle = currentTrack.name?.trim() || 'Unknown';
+    const thumbnail = getHighResImage(currentTrack.thumbnails?.[currentTrack.thumbnails.length - 1]?.url, 800);
+    const artistName = Array.isArray(currentTrack.artist)
+      ? currentTrack.artist.map((a) => a.name).join(', ')
+      : currentTrack.artist?.name || 'Unknown Artist';
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: trackTitle,
@@ -319,7 +317,7 @@ export function Player() {
         { src: getHighResImage(thumbnail, 512), sizes: '512x512', type: 'image/jpeg' },
       ],
     });
-  }, [currentTrack, trackTitle, artistName, thumbnail]);
+  }, [currentTrack]);
 
   // Handle Media Session Actions
   useEffect(() => {
@@ -367,6 +365,14 @@ export function Player() {
       metaThemeColor.setAttribute('content', dominantColor || '#120f18');
     }
   }, [dominantColor]);
+
+  if (!currentTrack) return null;
+
+  const trackTitle = currentTrack.name?.trim() || 'Unknown';
+  const thumbnail = getHighResImage(currentTrack.thumbnails?.[currentTrack.thumbnails.length - 1]?.url, 800);
+  const artistName = Array.isArray(currentTrack.artist)
+    ? currentTrack.artist.map((a) => a.name).join(', ')
+    : currentTrack.artist?.name || 'Unknown Artist';
 
   return (
     <>
