@@ -23,6 +23,7 @@ export function TrackItem({
   const [imageError, setImageError] = useState(false);
 
   const thumbnail = getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 200);
+  const trackTitle = track.name?.trim() || 'Lagu tanpa judul';
   const artistName = Array.isArray(track.artist) ? track.artist.map(a => a.name).join(', ') : track.artist?.name || 'Unknown Artist';
   const mode = playMode || (queue?.length ? 'playlist' : 'similar');
   const handlePlay = () => playTrack(track, mode === 'playlist' ? queue : undefined, mode);
@@ -36,7 +37,7 @@ export function TrackItem({
         {!imageError ? (
           <Image 
             src={thumbnail} 
-            alt={track.name} 
+            alt={trackTitle} 
             fill 
             sizes="48px" 
             className="object-cover"
@@ -59,7 +60,7 @@ export function TrackItem({
       </div>
       <div className="ml-4 flex-1 min-w-0 border-b border-white/5 pb-3 group-hover:border-transparent transition-colors">
         <div className={`font-medium truncate ${isCurrent ? 'text-[#FF7A59]' : 'text-white'}`}>
-          {track.name}
+          {trackTitle}
         </div>
         <div className="text-sm text-gray-400 truncate">{artistName}</div>
       </div>

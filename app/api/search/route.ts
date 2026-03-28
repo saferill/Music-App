@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import YTMusic from 'ytmusic-api';
+import { normalizeArtistEntity, normalizeNamedEntity, normalizeTrackList } from '@/lib/media';
 
 const ytmusic = new YTMusic();
 let initialized = false;
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
       let playlists = await ytmusic.searchPlaylists(query).catch(e => { console.error('Error searching playlists:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
       // Filter out mixes (IDs starting with RD) as they cannot be fetched via getPlaylist
       playlists = playlists.filter((p: any) => p.playlistId && !p.playlistId.startsWith('RD'));
-      return NextResponse.json(playlists, {
+      return NextResponse.json(playlists.map((playlist: Record<string, any>) => normalizeNamedEntity(playlist, 'Playlist')), {
         headers: {
           'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
         },
@@ -30,17 +31,17 @@ export async function GET(request: Request) {
     
     if (type === 'artist') {
       const artists = await ytmusic.searchArtists(query).catch(e => { console.error('Error searching artists:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-      return NextResponse.json(artists, { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
+      return NextResponse.json(artists.map((artist: Record<string, any>) => normalizeArtistEntity(artist)), { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
     }
     
     if (type === 'song') {
       const songs = await ytmusic.searchSongs(query).catch(e => { console.error('Error searching songs:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-      return NextResponse.json(songs, { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
+      return NextResponse.json(normalizeTrackList(songs), { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
     }
     
     if (type === 'video') {
       const videos = await ytmusic.searchVideos(query).catch(e => { console.error('Error searching videos:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-      return NextResponse.json(videos, { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
+      return NextResponse.json(normalizeTrackList(videos), { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
     }
 
     // If no type is specified, search sequentially to avoid 403 errors from too many parallel requests
@@ -48,7 +49,11 @@ export async function GET(request: Request) {
     const videos = await ytmusic.searchVideos(query).catch(e => { console.error('Error searching videos:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
     const artists = await ytmusic.searchArtists(query).catch(e => { console.error('Error searching artists:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
     
-    const results = [...songs, ...videos, ...artists];
+    const results = [
+      ...normalizeTrackList(songs),
+      ...normalizeTrackList(videos),
+      ...artists.map((artist: Record<string, any>) => normalizeArtistEntity(artist)),
+    ];
     return NextResponse.json(results, {
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',

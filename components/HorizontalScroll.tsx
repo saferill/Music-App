@@ -20,6 +20,7 @@ export function HorizontalScroll({ title, tracks }: { title: string; tracks: Tra
       <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:pb-0 lg:grid-cols-4 xl:grid-cols-5">
         {tracks.map((track, i) => {
           const thumbnail = getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 400);
+          const trackTitle = track.name?.trim() || 'Lagu tanpa judul';
           const artistName = Array.isArray(track.artist) ? track.artist.map(a => a.name).join(', ') : track.artist?.name || 'Unknown Artist';
 
           return (
@@ -33,7 +34,7 @@ export function HorizontalScroll({ title, tracks }: { title: string; tracks: Tra
               onClick={() => playTrack(track, tracks)}
             >
               <div className="relative mb-3 aspect-square w-full overflow-hidden rounded-[20px] shadow-lg transition-transform duration-300">
-                <Image src={thumbnail} alt={track.name} fill sizes="144px" className="object-cover" />
+                <Image src={thumbnail} alt={trackTitle} fill sizes="144px" className="object-cover" />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <div className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center">
                     <svg className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -42,7 +43,7 @@ export function HorizontalScroll({ title, tracks }: { title: string; tracks: Tra
                   </div>
                 </div>
               </div>
-              <div className="text-sm font-semibold text-white line-clamp-2 leading-tight">{track.name}</div>
+              <div className="text-sm font-semibold text-white line-clamp-2 leading-tight">{trackTitle}</div>
               <div className="mt-1 text-xs text-gray-300/80 line-clamp-2">{artistName}</div>
             </motion.div>
           );

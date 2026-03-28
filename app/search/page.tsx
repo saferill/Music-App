@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db, RecentSearch } from '@/lib/db';
 import { TrackItem } from '@/components/TrackItem';
 import { ArtistItem } from '@/components/ArtistItem';
@@ -16,6 +16,7 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('Semua');
   const [isFocused, setIsFocused] = useState(false);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
 
   const tabs = ['Semua', 'Lagu', 'Video', 'Album', 'Artis', 'Daftar putar'];
@@ -27,6 +28,12 @@ export default function Search() {
     };
 
     loadRecentSearches();
+
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -81,6 +88,20 @@ export default function Search() {
     setRecentSearches(searches);
   };
 
+  const handleSuggestionPick = (searchQuery: string) => {
+    const nextQuery = searchQuery.trim();
+    if (!nextQuery) return;
+
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+
+    setQuery(nextQuery);
+    setSuggestions([]);
+    void handleSearch(nextQuery);
+  };
+
   const filteredResults = results.filter((item) => {
     if (activeTab === 'Semua') return true;
     if (activeTab === 'Lagu') return item.type === 'SONG';
@@ -107,8 +128,16 @@ export default function Search() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                onFocus={() => {
+                  if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                    blurTimeoutRef.current = null;
+                  }
+                  setIsFocused(true);
+                }}
+                onBlur={() => {
+                  blurTimeoutRef.current = setTimeout(() => setIsFocused(false), 140);
+                }}
                 placeholder="Cari lagu, artis, atau playlist"
                 autoFocus
                 className="w-full rounded-[22px] border border-white/8 bg-white/6 py-3 pl-12 pr-11 text-white placeholder:text-white/35 transition-all focus:outline-none focus:ring-1 focus:ring-[#FF7A59]/40"
@@ -149,20 +178,19 @@ export default function Search() {
         {query && isFocused && suggestions.length > 0 && (
           <div className="glass-panel mt-4 overflow-hidden rounded-[24px]">
             {suggestions.map((suggestion, index) => (
-              <div
+              <button
                 key={index}
-                className="flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-white/5"
-                onClick={() => {
-                  setQuery(suggestion);
-                  handleSearch(suggestion);
-                }}
+                type="button"
+                className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-white/5"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => handleSuggestionPick(suggestion)}
               >
                 <div className="flex items-center gap-4">
                   <SearchIcon className="h-5 w-5 text-white/50" />
                   <span className="text-base text-white">{suggestion}</span>
                 </div>
                 <ArrowUpLeft className="h-5 w-5 text-white/50" />
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -172,11 +200,9 @@ export default function Search() {
             {recentSearches.map((search, index) => (
               <div
                 key={`recent-${index}`}
-                className="flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-white/5"
-                onClick={() => {
-                  setQuery(search.query);
-                  handleSearch(search.query);
-                }}
+                className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-white/5"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => handleSuggestionPick(search.query)}
               >
                 <div className="flex items-center gap-4">
                   <History className="h-5 w-5 text-white/50" />
@@ -191,7 +217,12 @@ export default function Search() {
                   </button>
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
+                      if (blurTimeoutRef.current) {
+                        clearTimeout(blurTimeoutRef.current);
+                        blurTimeoutRef.current = null;
+                      }
                       setQuery(search.query);
                       setIsFocused(true);
                     }}

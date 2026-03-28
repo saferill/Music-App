@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import YTMusic from 'ytmusic-api';
+import { normalizeTrack, normalizeTrackList } from '@/lib/media';
 
 const ytmusic = new YTMusic();
 let initialized = false;
@@ -37,11 +38,13 @@ export async function GET(request: Request) {
     }
 
     const currentSong = await ytmusic.getSong(id).catch(() => null) as any;
-    const currentTitle = normalizeTitle(firstString(currentSong?.name, currentSong?.title));
+    const normalizedCurrentSong = currentSong ? normalizeTrack(currentSong) : null;
+    const currentTitle = normalizeTitle(firstString(normalizedCurrentSong?.name, normalizedCurrentSong?.title));
     const upNext = await ytmusic.getUpNexts(id);
+    const normalizedUpNext = normalizeTrackList(upNext);
     const seenTitles = new Set<string>();
-    const filteredUpNext = Array.isArray(upNext)
-      ? upNext.filter((track: any) => {
+    const filteredUpNext = Array.isArray(normalizedUpNext)
+      ? normalizedUpNext.filter((track) => {
           if (!track?.videoId || track.videoId === id) return false;
 
           const normalizedTitle = normalizeTitle(firstString(track.name, track.title));

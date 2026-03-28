@@ -36,6 +36,7 @@ export default function HistoryPage() {
 
   const renderTrackItem = (item: any) => {
     const track = item.track;
+    const trackTitle = track.name?.trim() || 'Lagu tanpa judul';
     const artistName = Array.isArray(track.artist) ? track.artist.map((a: any) => a.name).join(', ') : track.artist?.name || 'Unknown Artist';
     const thumbnail = getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 100);
 
@@ -53,10 +54,10 @@ export default function HistoryPage() {
         onClick={() => playTrack(track, history.map(h => h.track))}
       >
         <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0">
-          <Image src={thumbnail} alt={track.name} fill sizes="56px" className="object-cover" />
+          <Image src={thumbnail} alt={trackTitle} fill sizes="56px" className="object-cover" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-medium truncate text-base">{track.name}</h3>
+          <h3 className="text-white font-medium truncate text-base">{trackTitle}</h3>
           <p className="text-white/60 text-sm truncate">
             {artistName}{formatDuration(track.duration)}
           </p>

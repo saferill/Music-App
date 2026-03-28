@@ -17,6 +17,8 @@ const pills = ['Chill', 'Focus', 'Commute', 'Gaming', 'Energize', 'Party', 'Feel
 const getArtistName = (track?: Track) =>
   !track ? 'Unknown Artist' : Array.isArray(track.artist) ? track.artist.map((artist) => artist.name).join(', ') : track.artist?.name || 'Unknown Artist';
 
+const getTrackTitle = (track?: Track) => track?.name?.trim() || 'Lagu tanpa judul';
+
 const formatPlayedAt = (timestamp: number) =>
   new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(timestamp);
 
@@ -299,16 +301,16 @@ export default function Home() {
                 className="group flex items-center gap-4 overflow-hidden rounded-2xl bg-white/8 p-2 pr-4 text-left transition hover:bg-white/12"
               >
                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
-                  <Image
-                    src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 320)}
-                    alt={track.name}
-                    fill
-                    sizes="64px"
-                    className="object-cover"
+                    <Image
+                      src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 320)}
+                      alt={getTrackTitle(track)}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-bold text-white">{track.name}</div>
+                  <div className="truncate text-sm font-bold text-white">{getTrackTitle(track)}</div>
                   <div className="mt-1 truncate text-xs text-white/55">{getArtistName(track)}</div>
                 </div>
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FF7A59] text-black shadow-lg transition group-hover:scale-[1.04]">
@@ -344,14 +346,14 @@ export default function Home() {
                   >
                     <Image
                       src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 280)}
-                      alt={track.name}
+                      alt={getTrackTitle(track)}
                       fill
                       sizes="56px"
                       className="object-cover"
                     />
                   </button>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold text-white">{track.name}</div>
+                    <div className="truncate text-sm font-bold text-white">{getTrackTitle(track)}</div>
                     <div className="mt-1 truncate text-xs text-white/55">{getArtistName(track)}</div>
                   </div>
                   <button
@@ -390,14 +392,14 @@ export default function Home() {
                     <div className="relative h-14 w-14 overflow-hidden rounded-xl">
                       <Image
                         src={getHighResImage(item.track.thumbnails?.[item.track.thumbnails.length - 1]?.url, 280)}
-                        alt={item.track.name}
+                        alt={getTrackTitle(item.track)}
                         fill
                         sizes="56px"
                         className="object-cover"
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-bold text-white">{item.track.name}</div>
+                      <div className="truncate text-sm font-bold text-white">{getTrackTitle(item.track)}</div>
                       <div className="mt-1 truncate text-xs text-white/55">{getArtistName(item.track)}</div>
                       <div className="mt-1 text-[11px] uppercase tracking-[0.24em] text-white/35">{formatPlayedAt(item.playedAt)}</div>
                     </div>

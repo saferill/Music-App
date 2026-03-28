@@ -82,6 +82,7 @@ export function CommunityPlaylistCard({ playlistId }: { playlistId: string }) {
   };
 
   const displayTracks = playlist.videos?.slice(0, 3) || [];
+  const playlistTitle = playlist.name?.trim() || 'Playlist komunitas';
 
   return (
     <div 
@@ -92,22 +93,26 @@ export function CommunityPlaylistCard({ playlistId }: { playlistId: string }) {
         <div className="w-24 h-24 rounded-2xl overflow-hidden relative shrink-0 shadow-lg bg-black/20">
           {playlist.videos && playlist.videos.length >= 4 ? (
             <div className="grid grid-cols-2 grid-rows-2 w-full h-full">
-              {playlist.videos.slice(0, 4).map((track, i) => (
+              {playlist.videos.slice(0, 4).map((track, i) => {
+                const trackTitle = track.name?.trim() || 'Lagu tanpa judul';
+
+                return (
                 <div key={i} className="relative w-full h-full">
                   <Image 
                     src={track.thumbnails?.[track.thumbnails.length - 1]?.url || '/placeholder.png'} 
-                    alt={track.name} 
+                    alt={trackTitle} 
                     fill 
                     sizes="48px" 
                     className="object-cover" 
                   />
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <Image 
               src={playlist.thumbnails?.[playlist.thumbnails.length - 1]?.url || '/placeholder.png'} 
-              alt={playlist.name} 
+              alt={playlistTitle} 
               fill 
               sizes="96px" 
               className="object-cover" 
@@ -115,31 +120,35 @@ export function CommunityPlaylistCard({ playlistId }: { playlistId: string }) {
           )}
         </div>
         <div className="flex flex-col justify-center">
-          <h3 className="text-white font-bold text-lg line-clamp-2 leading-tight mb-1">{playlist.name}</h3>
+          <h3 className="text-white font-bold text-lg line-clamp-2 leading-tight mb-1">{playlistTitle}</h3>
           <p className="text-white/50 text-sm">{playlist.videos?.length || 0} lagu</p>
         </div>
       </div>
 
       <div className="flex-1 space-y-4 mb-6">
-        {displayTracks.map((track, i) => (
+        {displayTracks.map((track, i) => {
+          const trackTitle = track.name?.trim() || 'Lagu tanpa judul';
+
+          return (
           <div key={i} className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg overflow-hidden relative shrink-0">
               <Image 
                 src={track.thumbnails?.[track.thumbnails.length - 1]?.url || '/placeholder.png'} 
-                alt={track.name} 
+                alt={trackTitle} 
                 fill 
                 sizes="48px" 
                 className="object-cover" 
               />
             </div>
             <div className="flex flex-col overflow-hidden">
-              <p className="text-white text-[15px] font-medium line-clamp-1">{track.name}</p>
+              <p className="text-white text-[15px] font-medium line-clamp-1">{trackTitle}</p>
               <p className="text-white/50 text-sm line-clamp-1">
                 {Array.isArray(track.artist) ? track.artist.map(a => a.name).join(', ') : track.artist?.name || 'Unknown Artist'}
               </p>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex items-center gap-3 mt-auto">

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import YTMusic from 'ytmusic-api';
+import { firstText, normalizeNamedEntity, normalizeTrackList } from '@/lib/media';
 
 const ytmusic = new YTMusic();
 let initialized = false;
@@ -32,8 +33,11 @@ export async function GET(request: Request) {
         }
       }
       return NextResponse.json({
+        ...normalizeNamedEntity(playlist, 'Playlist'),
         ...playlist,
-        videos: videos
+        name: firstText(playlist.name, playlist.title) || 'Playlist',
+        thumbnails: normalizeNamedEntity(playlist, 'Playlist').thumbnails,
+        videos: normalizeTrackList(videos),
       });
     } catch (e: any) {
       console.error('getPlaylist error:', e);
@@ -46,19 +50,14 @@ export async function GET(request: Request) {
       }
       
       const album = await ytmusic.getAlbum(id);
+      const normalizedAlbum = normalizeNamedEntity(album as Record<string, any>, 'Album');
       // Map album to playlist format
       return NextResponse.json({
         playlistId: album.albumId,
-        name: album.name,
+        name: firstText(album.name, normalizedAlbum.title) || 'Album',
         artist: album.artist,
-        thumbnails: album.thumbnails,
-        videos: album.songs.map((song: any) => ({
-          videoId: song.videoId,
-          name: song.name,
-          artist: song.artist,
-          duration: song.duration,
-          thumbnails: song.thumbnails,
-        }))
+        thumbnails: normalizedAlbum.thumbnails,
+        videos: normalizeTrackList(album.songs),
       });
     }
   } catch (error: any) {

@@ -1,5 +1,6 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Track } from './store';
+import { normalizeArtistEntity, normalizeTrack, normalizeTrackList } from './media';
 
 export interface SubscribedArtist {
   artistId: string;
@@ -58,18 +59,41 @@ if (typeof window !== 'undefined') {
   });
 }
 
+function sanitizeTrack(track: Track | Record<string, unknown>) {
+  return normalizeTrack(track as Record<string, any>) as Track;
+}
+
+function sanitizePlaylist(playlist: { id: string; name: string; img: string; tracks: Track[] }) {
+  return {
+    ...playlist,
+    tracks: normalizeTrackList(playlist?.tracks) as Track[],
+  };
+}
+
+function sanitizeSubscribedArtist(artist: SubscribedArtist) {
+  const normalized = normalizeArtistEntity(artist as Record<string, any>);
+
+  return {
+    ...artist,
+    ...normalized,
+    subscribedAt: artist.subscribedAt,
+  };
+}
+
 export const db = {
   async getPlaylists() {
     const db = await dbPromise;
-    return db.getAll('playlists');
+    const playlists = await db.getAll('playlists');
+    return playlists.map((playlist) => sanitizePlaylist(playlist));
   },
   async addPlaylist(playlist: { id: string; name: string; img: string; tracks: Track[] }) {
     const db = await dbPromise;
-    return db.put('playlists', playlist);
+    return db.put('playlists', sanitizePlaylist(playlist));
   },
   async getPlaylist(id: string) {
     const db = await dbPromise;
-    return db.get('playlists', id);
+    const playlist = await db.get('playlists', id);
+    return playlist ? sanitizePlaylist(playlist) : playlist;
   },
   async deletePlaylist(id: string) {
     const db = await dbPromise;
@@ -77,11 +101,12 @@ export const db = {
   },
   async getLikedSongs() {
     const db = await dbPromise;
-    return db.getAll('liked_songs');
+    const likedSongs = await db.getAll('liked_songs');
+    return likedSongs.map((track) => sanitizeTrack(track));
   },
   async addLikedSong(track: Track) {
     const db = await dbPromise;
-    return db.put('liked_songs', track);
+    return db.put('liked_songs', sanitizeTrack(track));
   },
   async removeLikedSong(videoId: string) {
     const db = await dbPromise;
@@ -94,11 +119,12 @@ export const db = {
   },
   async getSubscribedArtists() {
     const db = await dbPromise;
-    return db.getAll('subscribed_artists');
+    const artists = await db.getAll('subscribed_artists');
+    return artists.map((artist) => sanitizeSubscribedArtist(artist));
   },
   async addSubscribedArtist(artist: SubscribedArtist) {
     const db = await dbPromise;
-    return db.put('subscribed_artists', artist);
+    return db.put('subscribed_artists', sanitizeSubscribedArtist(artist));
   },
   async removeSubscribedArtist(artistId: string) {
     const db = await dbPromise;

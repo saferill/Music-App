@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { normalizeTrack } from '@/lib/media';
 
 export interface Track {
   videoId: string;
@@ -89,6 +90,25 @@ interface PlayerState {
   setDominantColor: (color: string | null) => void;
 }
 
+function sanitizeTrack(track: Track | Record<string, unknown>) {
+  return normalizeTrack(track as Record<string, any>) as Track;
+}
+
+function sanitizeQueue(queue?: Track[]) {
+  return queue?.map((track) => sanitizeTrack(track));
+}
+
+function sanitizeHistory(history?: HistoryItem[]) {
+  if (!Array.isArray(history)) return [];
+
+  return history
+    .filter((item): item is HistoryItem => Boolean(item?.track))
+    .map((item) => ({
+      ...item,
+      track: sanitizeTrack(item.track),
+    }));
+}
+
 export const usePlayerStore = create<PlayerState>()(
   persist(
     (set, get) => ({
@@ -107,22 +127,8 @@ export const usePlayerStore = create<PlayerState>()(
       dominantColor: null,
 
       playTrack: (rawTrack, rawQueue, context = 'similar') => {
-        const track = {
-          videoId: rawTrack.videoId,
-          name: rawTrack.name,
-          artist: rawTrack.artist,
-          thumbnails: rawTrack.thumbnails,
-          duration: rawTrack.duration,
-          isExplicit: rawTrack.isExplicit,
-        };
-        const queue = rawQueue ? rawQueue.map(t => ({
-          videoId: t.videoId,
-          name: t.name,
-          artist: t.artist,
-          thumbnails: t.thumbnails,
-          duration: t.duration,
-          isExplicit: t.isExplicit,
-        })) : undefined;
+        const track = sanitizeTrack(rawTrack);
+        const queue = sanitizeQueue(rawQueue);
         const queueIndex = queue ? Math.max(0, queue.findIndex((t) => t.videoId === track.videoId)) : 0;
 
         const state = get();
@@ -253,25 +259,11 @@ export const usePlayerStore = create<PlayerState>()(
       setDuration: (duration) => set({ duration }),
       setVolume: (volume) => set({ volume }),
       addToQueue: (rawTrack) => {
-        const track = {
-          videoId: rawTrack.videoId,
-          name: rawTrack.name,
-          artist: rawTrack.artist,
-          thumbnails: rawTrack.thumbnails,
-          duration: rawTrack.duration,
-          isExplicit: rawTrack.isExplicit,
-        };
+        const track = sanitizeTrack(rawTrack);
         set((state) => ({ queue: [...state.queue, track] }));
       },
       setTrackToAdd: (rawTrack) => {
-        const track = rawTrack ? {
-          videoId: rawTrack.videoId,
-          name: rawTrack.name,
-          artist: rawTrack.artist,
-          thumbnails: rawTrack.thumbnails,
-          duration: rawTrack.duration,
-          isExplicit: rawTrack.isExplicit,
-        } : null;
+        const track = rawTrack ? sanitizeTrack(rawTrack) : null;
         set({ trackToAdd: track });
       },
       setDominantColor: (color) => set({ dominantColor: color }),
@@ -283,6 +275,17 @@ export const usePlayerStore = create<PlayerState>()(
         playCounts: state.playCounts,
         volume: state.volume
       }),
+      merge: (persistedState, currentState) => {
+        const typedState = (persistedState as Partial<PlayerState>) || {};
+
+        return {
+          ...currentState,
+          ...typedState,
+          history: sanitizeHistory(typedState.history),
+          playCounts: typedState.playCounts || currentState.playCounts,
+          volume: typedState.volume ?? currentState.volume,
+        };
+      },
     }
   )
 );
