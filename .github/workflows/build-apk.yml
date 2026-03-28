@@ -34,6 +34,12 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x android/gradlew
 
+      - name: Capacitor Sync
+        run: |
+          mkdir -p out
+          echo "<html><body>Sonara Live Shell</body></html>" > out/index.html
+          npx cap sync android
+
       - name: Build Android APK (Debug)
         run: |
           cd android
