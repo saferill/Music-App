@@ -22,6 +22,7 @@ import {
   User,
   Music,
   Loader2,
+  Share2,
 } from 'lucide-react';
 import { cn, getHighResImage } from '@/lib/utils';
 import Image from 'next/image';
@@ -60,6 +61,7 @@ export function Player() {
   const [showLyrics, setShowLyrics] = useState(false);
   const [imageErrorTrackId, setImageErrorTrackId] = useState<string | null>(null);
   const playerRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const lyricLineRefs = useRef<Array<HTMLParagraphElement | null>>([]);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
   const lyrics =
@@ -149,6 +151,32 @@ export function Player() {
     [currentTrack, isLiked]
   );
 
+  const handleShare = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentTrack) return;
+
+    const artistLabel = Array.isArray(currentTrack.artist)
+      ? currentTrack.artist.map((a) => a.name).join(', ')
+      : currentTrack.artist?.name || 'Unknown Artist';
+
+    const shareData = {
+      title: currentTrack.name,
+      text: `Dengarkan "${currentTrack.name}" oleh ${artistLabel} di Sonara`,
+      url: `${window.location.origin}/search?q=${encodeURIComponent(currentTrack.name + ' ' + artistLabel)}`,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link disalin ke clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  }, [currentTrack]);
+
   const onReady = useCallback(
     async (event: any) => {
       playerRef.current = event.target;
@@ -183,12 +211,36 @@ export function Player() {
       interval = setInterval(async () => {
         if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
           const time = await playerRef.current.getCurrentTime();
+          const playerState = await playerRef.current.getPlayerState();
           setProgress(time || 0);
+
+          // Robust background ending check: if we're at the end and it's not playing, trigger next
+          if (time > 0 && duration > 0 && time >= duration - 1 && playerState !== YouTube.PlayerState.PLAYING) {
+            playNext();
+          }
         }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, setProgress]);
+  }, [isPlaying, setProgress, duration, playNext]);
+
+  // Handle silent audio to keep background process alive
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    if (isPlaying) {
+      if (!audioRef.current) {
+        const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/');
+        audio.loop = true;
+        audioRef.current = audio;
+      }
+      audioRef.current.play().catch(() => {
+        // Autoplay policy might block it until user interaction
+      });
+    } else {
+      audioRef.current?.pause();
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     if (playerRef.current) {
@@ -249,6 +301,72 @@ export function Player() {
   const artistName = Array.isArray(currentTrack.artist)
     ? currentTrack.artist.map((a) => a.name).join(', ')
     : currentTrack.artist?.name || 'Unknown Artist';
+
+  // Update Media Session Metadata
+  useEffect(() => {
+    if (!currentTrack || typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: trackTitle,
+      artist: artistName,
+      album: 'Sonara',
+      artwork: [
+        { src: getHighResImage(thumbnail, 96), sizes: '96x96', type: 'image/jpeg' },
+        { src: getHighResImage(thumbnail, 128), sizes: '128x128', type: 'image/jpeg' },
+        { src: getHighResImage(thumbnail, 192), sizes: '192x192', type: 'image/jpeg' },
+        { src: getHighResImage(thumbnail, 256), sizes: '256x256', type: 'image/jpeg' },
+        { src: getHighResImage(thumbnail, 384), sizes: '384x384', type: 'image/jpeg' },
+        { src: getHighResImage(thumbnail, 512), sizes: '512x512', type: 'image/jpeg' },
+      ],
+    });
+  }, [currentTrack, trackTitle, artistName, thumbnail]);
+
+  // Handle Media Session Actions
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      setPlaying(true);
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      setPlaying(false);
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      playPrev();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      playNext();
+    });
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (details.seekTime !== undefined && playerRef.current) {
+        playerRef.current.seekTo(details.seekTime, true);
+        setProgress(details.seekTime);
+      }
+    });
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+      navigator.mediaSession.setActionHandler('seekto', null);
+    };
+  }, [setPlaying, playPrev, playNext, setProgress]);
+
+  // Update Media Session Playback State
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }, [isPlaying]);
+
+  // Dynamic Theme Color
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', dominantColor || '#120f18');
+    }
+  }, [dominantColor]);
 
   return (
     <>
@@ -380,6 +498,9 @@ export function Player() {
                   <ChevronDown className="h-7 w-7 sm:h-8 sm:w-8" />
                 </button>
                 <div className="flex gap-2 sm:gap-4">
+                  <button onClick={handleShare} className="p-2 text-white">
+                    <Share2 className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
                   <button className="p-2 text-white">
                     <Cast className="h-5 w-5 sm:h-6 sm:w-6" />
                   </button>
