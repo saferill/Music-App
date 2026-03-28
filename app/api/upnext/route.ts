@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import YTMusic from 'ytmusic-api';
 import { normalizeTrack, normalizeTrackList } from '@/lib/media';
+import { resolveStreamFromHarmonySources } from '@/lib/stream-source';
 
 const ytmusic = new YTMusic();
 let initialized = false;
@@ -56,6 +57,31 @@ export async function GET(request: Request) {
           return true;
         })
       : [];
+
+    if (filteredUpNext.length === 0) {
+      const harmonyFallback = await resolveStreamFromHarmonySources(id).catch(() => null);
+      if (harmonyFallback?.relatedTracks?.length) {
+        const filteredRelated = harmonyFallback.relatedTracks.filter((track) => {
+          if (!track?.videoId || track.videoId === id) return false;
+
+          const normalizedTitle = normalizeTitle(firstString(track.name, track.title));
+          if (!normalizedTitle) return true;
+          if (normalizedTitle === currentTitle) return false;
+          if (seenTitles.has(normalizedTitle)) return false;
+
+          seenTitles.add(normalizedTitle);
+          return true;
+        });
+
+        if (filteredRelated.length > 0) {
+          return NextResponse.json(filteredRelated, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+            },
+          });
+        }
+      }
+    }
 
     return NextResponse.json(filteredUpNext, {
       headers: {

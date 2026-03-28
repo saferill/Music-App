@@ -9,3 +9,4 @@ coverage/
 android/keystore.properties
 *.jks
 *.keystore
+.gradle-local/

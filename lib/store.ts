@@ -18,6 +18,7 @@ export interface HistoryItem {
 }
 
 const prefetchedLyrics = new Set<string>();
+const prefetchedStreams = new Set<string>();
 
 function getArtistLabel(track: Track) {
   return Array.isArray(track.artist)
@@ -53,12 +54,27 @@ function primeLyrics(track?: Track | null) {
   });
 }
 
+function primeStream(track?: Track | null) {
+  if (typeof window === 'undefined' || !track?.videoId) return;
+
+  const key = track.videoId;
+  if (prefetchedStreams.has(key)) return;
+
+  prefetchedStreams.add(key);
+  if (prefetchedStreams.size > 500) prefetchedStreams.clear();
+
+  void fetch(`${getApiBaseUrl()}/api/stream?id=${encodeURIComponent(track.videoId)}`).catch(() => {
+    prefetchedStreams.delete(key);
+  });
+}
+
 function primeQueueNeighbor(queue: Track[] | undefined, index: number) {
   if (!queue?.length) return;
 
   const nextTrack = queue[index + 1];
   if (nextTrack) {
     primeLyrics(nextTrack);
+    primeStream(nextTrack);
   }
 }
 
@@ -153,6 +169,7 @@ export const usePlayerStore = create<PlayerState>()(
         });
 
         primeLyrics(track);
+        primeStream(track);
         primeQueueNeighbor(queue, queueIndex);
       },
 
@@ -180,6 +197,7 @@ export const usePlayerStore = create<PlayerState>()(
           });
 
           primeLyrics(nextTrack);
+          primeStream(nextTrack);
           primeQueueNeighbor(queue, nextIndex);
         } else {
           if (playContext === 'similar' && currentTrack) {
@@ -210,7 +228,9 @@ export const usePlayerStore = create<PlayerState>()(
                   });
 
                   primeLyrics(nextTrack);
+                  primeStream(nextTrack);
                   primeLyrics(nextTracks[1]);
+                  primeStream(nextTracks[1]);
                   return;
                 }
               }
@@ -250,6 +270,7 @@ export const usePlayerStore = create<PlayerState>()(
           });
 
           primeLyrics(prevTrack);
+          primeStream(prevTrack);
         }
       },
 

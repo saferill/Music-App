@@ -30,8 +30,15 @@ import { useRouter } from 'next/navigation';
 import { LyricsPayload } from '@/lib/lyrics';
 import { getApiBaseUrl } from '@/lib/config';
 import { playbackNotification } from '@/lib/playback-notification';
+import { isAndroidNativeAudio, nativeAudio } from '@/lib/native-audio';
 
 type LyricsStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
+type StreamStatus = 'idle' | 'loading' | 'ready' | 'fallback';
+type StreamState = {
+  trackId: string | null;
+  url: string | null;
+  status: StreamStatus;
+};
 
 export function Player() {
   const router = useRouter();
@@ -62,8 +69,14 @@ export function Player() {
   });
   const [showLyrics, setShowLyrics] = useState(false);
   const [imageErrorTrackId, setImageErrorTrackId] = useState<string | null>(null);
+  const [streamState, setStreamState] = useState<StreamState>({
+    trackId: null,
+    url: null,
+    status: 'idle',
+  });
   const playerRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const nativeTrackKeyRef = useRef<string | null>(null);
   const lyricLineRefs = useRef<Array<HTMLParagraphElement | null>>([]);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
   const isBackgrounded = useRef(false);
@@ -72,12 +85,168 @@ export function Player() {
   const lyricsStatus: LyricsStatus =
     currentTrack && lyricsState.trackId === currentTrack.videoId ? lyricsState.status : 'idle';
   const imageError = currentTrack ? imageErrorTrackId === currentTrack.videoId : false;
+  const isDirectStreamReady = Boolean(
+    currentTrack &&
+      streamState.trackId === currentTrack.videoId &&
+      streamState.status === 'ready' &&
+      streamState.url
+  );
+  const useYoutubeFallback = Boolean(
+    currentTrack &&
+      streamState.trackId === currentTrack.videoId &&
+      streamState.status === 'fallback'
+  );
+  const useNativeDirectPlayback = isAndroidNativeAudio() && isDirectStreamReady;
+  const useWebDirectPlayback = isDirectStreamReady && !useNativeDirectPlayback;
 
   useEffect(() => {
     if (currentTrack) {
       db.isLiked(currentTrack.videoId).then(setIsLiked);
+    } else if (isAndroidNativeAudio()) {
+      nativeTrackKeyRef.current = null;
+      void nativeAudio.stop();
     }
   }, [currentTrack]);
+
+  useEffect(() => {
+    if (!currentTrack) {
+      return;
+    }
+
+    nativeTrackKeyRef.current = null;
+    if (isAndroidNativeAudio()) {
+      void nativeAudio.stop();
+    }
+
+    const controller = new AbortController();
+    let timedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 2800);
+
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+    }
+
+    if (playerRef.current && typeof playerRef.current.stopVideo === 'function') {
+      playerRef.current.stopVideo();
+    }
+
+    queueMicrotask(() => {
+      if (controller.signal.aborted) return;
+
+      setProgress(0);
+      setDuration(currentTrack.duration || 0);
+      setStreamState({
+        trackId: currentTrack.videoId,
+        url: null,
+        status: 'loading',
+      });
+    });
+
+    fetch(`${getApiBaseUrl()}/api/stream?id=${encodeURIComponent(currentTrack.videoId)}`, {
+      signal: controller.signal,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (controller.signal.aborted) return;
+
+        if (typeof data?.stream?.url === 'string' && data.stream.url) {
+          setStreamState({
+            trackId: currentTrack.videoId,
+            url: data.stream.url,
+            status: 'ready',
+          });
+          return;
+        }
+
+        setStreamState({
+          trackId: currentTrack.videoId,
+          url: null,
+          status: 'fallback',
+        });
+      })
+      .catch(() => {
+        if (controller.signal.aborted && !timedOut) return;
+
+        setStreamState({
+          trackId: currentTrack.videoId,
+          url: null,
+          status: 'fallback',
+        });
+      });
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [currentTrack, setDuration, setProgress]);
+
+  useEffect(() => {
+    if (!isAndroidNativeAudio()) return;
+
+    const listener = nativeAudio.addListener((event) => {
+      if (typeof event.position === 'number') {
+        setProgress(event.position);
+      }
+
+      if (typeof event.duration === 'number' && event.duration > 0) {
+        setDuration(event.duration);
+      }
+
+      if (typeof event.isPlaying === 'boolean') {
+        setPlaying(event.isPlaying);
+      }
+
+      if (event.ended && currentTrack?.videoId && event.trackId === currentTrack.videoId) {
+        void playNext();
+      }
+    });
+
+    void nativeAudio.getState().then((state) => {
+      if (typeof state.position === 'number') {
+        setProgress(state.position);
+      }
+      if (typeof state.duration === 'number' && state.duration > 0) {
+        setDuration(state.duration);
+      }
+      if (typeof state.isPlaying === 'boolean') {
+        setPlaying(state.isPlaying);
+      }
+    });
+
+    return () => {
+      void listener.remove();
+    };
+  }, [currentTrack?.videoId, playNext, setDuration, setPlaying, setProgress]);
+
+  useEffect(() => {
+    if (!useNativeDirectPlayback || !currentTrack || !streamState.url) return;
+
+    const artistLabel = Array.isArray(currentTrack.artist)
+      ? currentTrack.artist.map((artist) => artist.name).join(', ')
+      : currentTrack.artist?.name || 'Unknown Artist';
+    const artworkUrl = currentTrack.thumbnails?.[currentTrack.thumbnails.length - 1]?.url;
+    const trackKey = `${currentTrack.videoId}:${streamState.url}`;
+
+    if (nativeTrackKeyRef.current === trackKey) return;
+
+    nativeTrackKeyRef.current = trackKey;
+
+    void nativeAudio.setTrack({
+      trackId: currentTrack.videoId,
+      url: streamState.url,
+      title: currentTrack.name?.trim() || 'Unknown',
+      artist: artistLabel,
+      artworkUrl,
+      autoplay: isPlaying,
+      position: 0,
+    });
+  }, [currentTrack, isPlaying, streamState.url, useNativeDirectPlayback]);
 
   useEffect(() => {
     if (!currentTrack) return;
@@ -212,7 +381,7 @@ export function Player() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isPlaying) {
+    if (isPlaying && useYoutubeFallback) {
       interval = setInterval(async () => {
         if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
           const time = await playerRef.current.getCurrentTime();
@@ -227,37 +396,133 @@ export function Player() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, setProgress, duration, playNext]);
+  }, [isPlaying, useYoutubeFallback, setProgress, duration, playNext]);
 
-  // Handle silent audio to keep background process alive
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    if (isPlaying) {
-      if (!audioRef.current) {
-        // Using a slightly longer silent audio (1s) to be more reliable on some browsers
-        const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/');
-        audio.loop = true;
-        audioRef.current = audio;
-      }
-      audioRef.current.play().catch(() => {
-        // Autoplay policy might block it until user interaction
-        console.log('Silent audio playback blocked');
-      });
-    } else {
-      audioRef.current?.pause();
-    }
-  }, [isPlaying]);
+    const audio = audioRef.current;
+    if (!audio) return;
 
-  // Maintain playback when switching between background and foreground
+    const handleLoadedMetadata = () => {
+      const resolvedDuration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      setDuration(resolvedDuration || currentTrack?.duration || 0);
+    };
+
+    const handleDurationChange = () => {
+      const resolvedDuration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      if (resolvedDuration > 0) {
+        setDuration(resolvedDuration);
+      }
+    };
+
+    const handleTimeUpdate = () => {
+      setProgress(audio.currentTime || 0);
+    };
+
+    const handlePlayEvent = () => {
+      if (useWebDirectPlayback) {
+        setPlaying(true);
+      }
+    };
+
+    const handlePauseEvent = () => {
+      if (useWebDirectPlayback && !audio.ended) {
+        setPlaying(false);
+      }
+    };
+
+    const handleEnded = () => {
+      setProgress(0);
+      playNext();
+    };
+
+    const handleError = () => {
+      if (!currentTrack) return;
+
+      setStreamState((state) => {
+        if (state.trackId !== currentTrack.videoId) return state;
+
+        return {
+          trackId: currentTrack.videoId,
+          url: null,
+          status: 'fallback',
+        };
+      });
+    };
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('durationchange', handleDurationChange);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('play', handlePlayEvent);
+    audio.addEventListener('pause', handlePauseEvent);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('durationchange', handleDurationChange);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('play', handlePlayEvent);
+      audio.removeEventListener('pause', handlePauseEvent);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+    };
+  }, [currentTrack, useWebDirectPlayback, playNext, setDuration, setPlaying, setProgress]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    if (useWebDirectPlayback && audio && streamState.url) {
+      if (audio.src !== streamState.url) {
+        audio.src = streamState.url;
+        audio.load();
+      }
+
+      if (isPlaying) {
+        void audio.play().catch(() => {
+          setPlaying(false);
+        });
+      } else {
+        audio.pause();
+      }
+
+      if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+        playerRef.current.pauseVideo();
+      }
+
+      return;
+    }
+
+    if (audio) {
+      audio.pause();
+    }
+
+    if (useYoutubeFallback && playerRef.current) {
+      if (isPlaying) {
+        if (typeof playerRef.current.playVideo === 'function') {
+          playerRef.current.playVideo();
+        }
+      } else if (typeof playerRef.current.pauseVideo === 'function') {
+        playerRef.current.pauseVideo();
+      }
+    }
+  }, [useWebDirectPlayback, useYoutubeFallback, streamState.url, isPlaying, setPlaying]);
+
+  useEffect(() => {
+    if (!useNativeDirectPlayback) return;
+
+    if (isPlaying) {
+      void nativeAudio.play();
+    } else {
+      void nativeAudio.pause();
+    }
+  }, [isPlaying, useNativeDirectPlayback]);
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       const hidden = document.visibilityState === 'hidden';
       isBackgrounded.current = hidden;
-      
-      if (!hidden && isPlaying && playerRef.current) {
-        // When coming back to foreground, if we're supposed to be playing,
-        // poke the YouTube player just in case it was frozen by the browser.
+
+      if (!hidden && isPlaying && useYoutubeFallback && playerRef.current) {
         const state = playerRef.current.getPlayerState?.();
         if (state !== YouTube.PlayerState.PLAYING) {
           playerRef.current.playVideo();
@@ -267,22 +532,7 @@ export function Player() {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (playerRef.current) {
-      if (isPlaying) {
-        // Robust check for playVideo availability
-        if (typeof playerRef.current.playVideo === 'function') {
-          playerRef.current.playVideo();
-        }
-      } else {
-        if (typeof playerRef.current.pauseVideo === 'function') {
-          playerRef.current.pauseVideo();
-        }
-      }
-    }
-  }, [isPlaying]);
+  }, [isPlaying, useYoutubeFallback]);
 
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00';
@@ -294,7 +544,11 @@ export function Player() {
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = Number(e.target.value);
     setProgress(newTime);
-    if (playerRef.current) {
+    if (useNativeDirectPlayback) {
+      void nativeAudio.seekTo(newTime);
+    } else if (useWebDirectPlayback && audioRef.current) {
+      audioRef.current.currentTime = newTime;
+    } else if (playerRef.current) {
       playerRef.current.seekTo(newTime, true);
     }
   };
@@ -370,7 +624,15 @@ export function Player() {
       playNext();
     });
     navigator.mediaSession.setActionHandler('seekto', (details) => {
-      if (details.seekTime !== undefined && playerRef.current) {
+      if (details.seekTime === undefined) return;
+
+      if (useNativeDirectPlayback) {
+        void nativeAudio.seekTo(details.seekTime);
+        setProgress(details.seekTime);
+      } else if (useWebDirectPlayback && audioRef.current) {
+        audioRef.current.currentTime = details.seekTime;
+        setProgress(details.seekTime);
+      } else if (playerRef.current) {
         playerRef.current.seekTo(details.seekTime, true);
         setProgress(details.seekTime);
       }
@@ -378,7 +640,13 @@ export function Player() {
     navigator.mediaSession.setActionHandler('seekbackward', (details) => {
       const skip = details.seekOffset || skipTime;
       const newTime = Math.max(progress - skip, 0);
-      if (playerRef.current) {
+      if (useNativeDirectPlayback) {
+        void nativeAudio.seekTo(newTime);
+        setProgress(newTime);
+      } else if (useWebDirectPlayback && audioRef.current) {
+        audioRef.current.currentTime = newTime;
+        setProgress(newTime);
+      } else if (playerRef.current) {
         playerRef.current.seekTo(newTime, true);
         setProgress(newTime);
       }
@@ -386,7 +654,13 @@ export function Player() {
     navigator.mediaSession.setActionHandler('seekforward', (details) => {
       const skip = details.seekOffset || skipTime;
       const newTime = Math.min(progress + skip, duration);
-      if (playerRef.current) {
+      if (useNativeDirectPlayback) {
+        void nativeAudio.seekTo(newTime);
+        setProgress(newTime);
+      } else if (useWebDirectPlayback && audioRef.current) {
+        audioRef.current.currentTime = newTime;
+        setProgress(newTime);
+      } else if (playerRef.current) {
         playerRef.current.seekTo(newTime, true);
         setProgress(newTime);
       }
@@ -398,18 +672,29 @@ export function Player() {
         try { navigator.mediaSession.setActionHandler(h as any, null); } catch(e) {}
       });
     };
-  }, [setPlaying, playPrev, playNext, setProgress, progress, duration]);
+  }, [useNativeDirectPlayback, useWebDirectPlayback, setPlaying, playPrev, playNext, setProgress, progress, duration]);
 
   useEffect(() => {
+    if (useNativeDirectPlayback) {
+      void playbackNotification.sync(null);
+      return;
+    }
+
     const listener = playbackNotification.addListener(({ action }) => {
       if (action === 'play') {
         setPlaying(true);
-        if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+        if (useWebDirectPlayback && audioRef.current) {
+          void audioRef.current.play().catch(() => {
+            setPlaying(false);
+          });
+        } else if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
           playerRef.current.playVideo();
         }
       } else if (action === 'pause') {
         setPlaying(false);
-        if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+        if (isDirectStreamReady && audioRef.current) {
+          audioRef.current.pause();
+        } else if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
           playerRef.current.pauseVideo();
         }
       }
@@ -426,7 +711,7 @@ export function Player() {
     return () => {
       void listener.remove();
     };
-  }, [setPlaying]);
+  }, [isDirectStreamReady, useNativeDirectPlayback, useWebDirectPlayback, setPlaying]);
 
   // Update Media Session Playback State and Position
   useEffect(() => {
@@ -463,6 +748,11 @@ export function Player() {
       return;
     }
 
+    if (useNativeDirectPlayback) {
+      void playbackNotification.sync(null);
+      return;
+    }
+
     const title = currentTrack.name?.trim() || 'Unknown';
     const artist = Array.isArray(currentTrack.artist)
       ? currentTrack.artist.map((entry) => entry.name).filter(Boolean).join(', ')
@@ -473,7 +763,7 @@ export function Player() {
       artist,
       isPlaying,
     });
-  }, [currentTrack, isPlaying]);
+  }, [currentTrack, isPlaying, useNativeDirectPlayback]);
 
   if (!currentTrack) return null;
 
@@ -485,28 +775,36 @@ export function Player() {
 
   return (
     <>
+      <audio
+        ref={audioRef}
+        preload="auto"
+        playsInline
+        className="hidden"
+      />
       <div 
         className="pointer-events-none fixed inset-0 z-[-1] overflow-hidden"
         style={{ visibility: 'hidden', width: '1px', height: '1px' }}
       >
-        <YouTube
-          videoId={currentTrack.videoId}
-          opts={{
-            height: '1',
-            width: '1',
-            playerVars: {
-              autoplay: 1,
-              controls: 0,
-              playsinline: 1,
-              rel: 0,
-              modestbranding: 1,
-              enablejsapi: 1,
-              origin: typeof window !== 'undefined' ? window.location.origin : '',
-            },
-          }}
-          onReady={onReady}
-          onStateChange={onStateChange}
-        />
+        {useYoutubeFallback && (
+          <YouTube
+            videoId={currentTrack.videoId}
+            opts={{
+              height: '1',
+              width: '1',
+              playerVars: {
+                autoplay: 1,
+                controls: 0,
+                playsinline: 1,
+                rel: 0,
+                modestbranding: 1,
+                enablejsapi: 1,
+                origin: typeof window !== 'undefined' ? window.location.origin : '',
+              },
+            }}
+            onReady={onReady}
+            onStateChange={onStateChange}
+          />
+        )}
       </div>
 
       <AnimatePresence>
