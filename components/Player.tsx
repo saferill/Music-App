@@ -61,6 +61,7 @@ export function Player() {
   const [imageErrorTrackId, setImageErrorTrackId] = useState<string | null>(null);
   const playerRef = useRef<any>(null);
   const lyricLineRefs = useRef<Array<HTMLParagraphElement | null>>([]);
+  const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
   const lyrics =
     currentTrack && lyricsState.trackId === currentTrack.videoId ? lyricsState.data : null;
   const lyricsStatus: LyricsStatus =
@@ -82,7 +83,7 @@ export function Player() {
     const controller = new AbortController();
     const params = new URLSearchParams({
       id: currentTrack.videoId,
-      title: currentTrack.name,
+      title: currentTrack.name?.trim() || 'Unknown',
       artist: artistLabel,
     });
 
@@ -231,8 +232,19 @@ export function Player() {
     });
   }, [activeLyricIndex, showLyrics]);
 
+  useEffect(() => {
+    if (!showLyrics || !currentTrack) return;
+
+    lyricLineRefs.current = [];
+    lyricsContainerRef.current?.scrollTo({
+      top: 0,
+      behavior: 'auto',
+    });
+  }, [currentTrack, showLyrics]);
+
   if (!currentTrack) return null;
 
+  const trackTitle = currentTrack.name?.trim() || 'Unknown';
   const thumbnail = getHighResImage(currentTrack.thumbnails?.[currentTrack.thumbnails.length - 1]?.url, 800);
   const artistName = Array.isArray(currentTrack.artist)
     ? currentTrack.artist.map((a) => a.name).join(', ')
@@ -297,7 +309,7 @@ export function Player() {
                     {!imageError ? (
                       <Image
                         src={thumbnail}
-                        alt={currentTrack.name}
+                        alt={trackTitle}
                         fill
                         sizes="(max-width: 640px) 100vw, 500px"
                         className="object-cover"
@@ -312,7 +324,7 @@ export function Player() {
                 </div>
 
                 <div className="flex min-w-0 flex-1 flex-col justify-center">
-                  <div className="truncate text-sm font-semibold text-white">{currentTrack.name}</div>
+                  <div className="truncate text-sm font-semibold text-white">{trackTitle}</div>
                   <div className="flex items-center gap-1 truncate text-xs text-white/60">
                     {currentTrack.isExplicit && (
                       <span className="rounded-sm bg-white/20 px-1 text-[8px] text-white">E</span>
@@ -379,7 +391,10 @@ export function Player() {
 
               <div className="flex min-h-0 flex-1 flex-col justify-center">
                 {showLyrics ? (
-                  <div className="glass-panel flex-1 overflow-y-auto rounded-[28px] px-4 py-5 no-scrollbar sm:px-6 sm:py-6">
+                  <div
+                    ref={lyricsContainerRef}
+                    className="glass-panel flex-1 overflow-y-auto rounded-[28px] px-4 py-5 no-scrollbar sm:px-6 sm:py-6"
+                  >
                     {lyricsStatus === 'loading' ? (
                       <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-white/60">
                         <Loader2 className="h-6 w-6 animate-spin text-[#FF7A59]" />
@@ -419,8 +434,8 @@ export function Player() {
                       </div>
                     ) : (
                       <div className="flex h-full items-center justify-center text-center text-sm leading-7 text-white/55 sm:text-base">
-                        Lirik belum ketemu untuk lagu ini. Sonara sudah coba cari dari beberapa sumber, jadi kalau
-                        provider menambah data lagu ini nanti tombol lirik akan ikut hidup.
+                        Lirik untuk {trackTitle} dari {artistName} belum ketemu. Sonara sudah coba cari dari beberapa
+                        sumber, jadi kalau provider menambah data lagu ini nanti tombol lirik akan ikut hidup.
                       </div>
                     )}
                   </div>
@@ -437,7 +452,7 @@ export function Player() {
                       {!imageError ? (
                         <Image
                           src={thumbnail}
-                          alt={currentTrack.name}
+                          alt={trackTitle}
                           width={500}
                           height={500}
                           className="h-full w-full object-cover"
@@ -464,7 +479,7 @@ export function Player() {
                       transition={{ duration: 0.3 }}
                       className="min-w-0 flex-1 pr-4"
                     >
-                      <h2 className="truncate text-xl font-bold text-white sm:text-2xl">{currentTrack.name}</h2>
+                      <h2 className="truncate text-xl font-bold text-white sm:text-2xl">{trackTitle}</h2>
                       <p className="truncate text-sm text-white/60 sm:text-lg">{artistName}</p>
                     </motion.div>
                   </AnimatePresence>
