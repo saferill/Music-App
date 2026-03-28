@@ -64,6 +64,7 @@ export function Player() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lyricLineRefs = useRef<Array<HTMLParagraphElement | null>>([]);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
+  const isBackgrounded = useRef(false);
   const lyrics =
     currentTrack && lyricsState.trackId === currentTrack.videoId ? lyricsState.data : null;
   const lyricsStatus: LyricsStatus =
@@ -197,7 +198,12 @@ export function Player() {
         const duration = await event.target.getDuration();
         setDuration(duration || 0);
       } else if (event.data === YouTube.PlayerState.PAUSED) {
-        setPlaying(false);
+        // Only set playing to false if the user actually clicked pause or the app is visible
+        // If the browser pauses the iframe in background, we keep our state as 'playing'
+        // to maintain the Media Session and silent audio.
+        if (document.visibilityState === 'visible') {
+          setPlaying(false);
+        }
       } else if (event.data === YouTube.PlayerState.ENDED) {
         playNext();
       }
@@ -230,24 +236,51 @@ export function Player() {
     
     if (isPlaying) {
       if (!audioRef.current) {
+        // Using a slightly longer silent audio (1s) to be more reliable on some browsers
         const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/');
         audio.loop = true;
         audioRef.current = audio;
       }
       audioRef.current.play().catch(() => {
         // Autoplay policy might block it until user interaction
+        console.log('Silent audio playback blocked');
       });
     } else {
       audioRef.current?.pause();
     }
   }, [isPlaying]);
 
+  // Maintain playback when switching between background and foreground
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const hidden = document.visibilityState === 'hidden';
+      isBackgrounded.current = hidden;
+      
+      if (!hidden && isPlaying && playerRef.current) {
+        // When coming back to foreground, if we're supposed to be playing,
+        // poke the YouTube player just in case it was frozen by the browser.
+        const state = playerRef.current.getPlayerState?.();
+        if (state !== YouTube.PlayerState.PLAYING) {
+          playerRef.current.playVideo();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isPlaying]);
+
   useEffect(() => {
     if (playerRef.current) {
       if (isPlaying) {
-        playerRef.current.playVideo();
+        // Robust check for playVideo availability
+        if (typeof playerRef.current.playVideo === 'function') {
+          playerRef.current.playVideo();
+        }
       } else {
-        playerRef.current.pauseVideo();
+        if (typeof playerRef.current.pauseVideo === 'function') {
+          playerRef.current.pauseVideo();
+        }
       }
     }
   }, [isPlaying]);
@@ -323,6 +356,8 @@ export function Player() {
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
 
+    const skipTime = 10;
+
     navigator.mediaSession.setActionHandler('play', () => {
       setPlaying(true);
     });
@@ -341,21 +376,50 @@ export function Player() {
         setProgress(details.seekTime);
       }
     });
+    navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+      const skip = details.seekOffset || skipTime;
+      const newTime = Math.max(progress - skip, 0);
+      if (playerRef.current) {
+        playerRef.current.seekTo(newTime, true);
+        setProgress(newTime);
+      }
+    });
+    navigator.mediaSession.setActionHandler('seekforward', (details) => {
+      const skip = details.seekOffset || skipTime;
+      const newTime = Math.min(progress + skip, duration);
+      if (playerRef.current) {
+        playerRef.current.seekTo(newTime, true);
+        setProgress(newTime);
+      }
+    });
 
     return () => {
-      navigator.mediaSession.setActionHandler('play', null);
-      navigator.mediaSession.setActionHandler('pause', null);
-      navigator.mediaSession.setActionHandler('previoustrack', null);
-      navigator.mediaSession.setActionHandler('nexttrack', null);
-      navigator.mediaSession.setActionHandler('seekto', null);
+      const handlers = ['play', 'pause', 'previoustrack', 'nexttrack', 'seekto', 'seekbackward', 'seekforward'];
+      handlers.forEach(h => {
+        try { navigator.mediaSession.setActionHandler(h as any, null); } catch(e) {}
+      });
     };
-  }, [setPlaying, playPrev, playNext, setProgress]);
+  }, [setPlaying, playPrev, playNext, setProgress, progress, duration]);
 
-  // Update Media Session Playback State
+  // Update Media Session Playback State and Position
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+    
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-  }, [isPlaying]);
+    
+    // Update position state for consistent progress on lock screen
+    if ('setPositionState' in navigator.mediaSession) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: duration || 0,
+          playbackRate: 1,
+          position: progress || 0,
+        });
+      } catch (e) {
+        console.error('Error setting position state:', e);
+      }
+    }
+  }, [isPlaying, duration, progress]);
 
   // Dynamic Theme Color
   useEffect(() => {
@@ -376,7 +440,10 @@ export function Player() {
 
   return (
     <>
-      <div className="pointer-events-none fixed -left-[9999px] top-0 h-px w-px overflow-hidden opacity-0">
+      <div 
+        className="pointer-events-none fixed inset-0 z-[-1] overflow-hidden"
+        style={{ visibility: 'hidden', width: '1px', height: '1px' }}
+      >
         <YouTube
           videoId={currentTrack.videoId}
           opts={{
@@ -388,6 +455,8 @@ export function Player() {
               playsinline: 1,
               rel: 0,
               modestbranding: 1,
+              enablejsapi: 1,
+              origin: typeof window !== 'undefined' ? window.location.origin : '',
             },
           }}
           onReady={onReady}
