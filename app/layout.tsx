@@ -8,6 +8,7 @@ import { PWARegister } from '@/components/PWARegister';
 import { BackgroundProvider } from '@/components/BackgroundProvider';
 import { OnboardingGate } from '@/components/OnboardingGate';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { AppUpdateNotifier } from '@/components/AppUpdateNotifier';
 
 export const metadata: Metadata = {
   title: 'Sonara',
@@ -50,6 +51,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <BottomNav />
         <AddToPlaylistModal />
         <InstallPrompt />
+        <AppUpdateNotifier />
       </body>
     </html>
   );

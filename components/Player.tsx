@@ -29,6 +29,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { LyricsPayload } from '@/lib/lyrics';
 import { getApiBaseUrl } from '@/lib/config';
+import { playbackNotification } from '@/lib/playback-notification';
 
 type LyricsStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
 
@@ -199,12 +200,9 @@ export function Player() {
         const duration = await event.target.getDuration();
         setDuration(duration || 0);
       } else if (event.data === YouTube.PlayerState.PAUSED) {
-        // Only set playing to false if the user actually clicked pause or the app is visible
-        // If the browser pauses the iframe in background, we keep our state as 'playing'
-        // to maintain the Media Session and silent audio.
-        if (document.visibilityState === 'visible') {
-          setPlaying(false);
-        }
+        // Reflect the real playback state so Android notification can show a Play action
+        // when the WebView or iframe pauses playback in background.
+        setPlaying(false);
       } else if (event.data === YouTube.PlayerState.ENDED) {
         playNext();
       }
@@ -402,6 +400,34 @@ export function Player() {
     };
   }, [setPlaying, playPrev, playNext, setProgress, progress, duration]);
 
+  useEffect(() => {
+    const listener = playbackNotification.addListener(({ action }) => {
+      if (action === 'play') {
+        setPlaying(true);
+        if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+          playerRef.current.playVideo();
+        }
+      } else if (action === 'pause') {
+        setPlaying(false);
+        if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+          playerRef.current.pauseVideo();
+        }
+      }
+    });
+
+    void playbackNotification.consumePendingAction().then(({ action }) => {
+      if (action === 'play') {
+        setPlaying(true);
+      } else if (action === 'pause') {
+        setPlaying(false);
+      }
+    });
+
+    return () => {
+      void listener.remove();
+    };
+  }, [setPlaying]);
+
   // Update Media Session Playback State and Position
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
@@ -430,6 +456,24 @@ export function Player() {
       metaThemeColor.setAttribute('content', dominantColor || '#120f18');
     }
   }, [dominantColor]);
+
+  useEffect(() => {
+    if (!currentTrack) {
+      void playbackNotification.sync(null);
+      return;
+    }
+
+    const title = currentTrack.name?.trim() || 'Unknown';
+    const artist = Array.isArray(currentTrack.artist)
+      ? currentTrack.artist.map((entry) => entry.name).filter(Boolean).join(', ')
+      : currentTrack.artist?.name || 'Unknown Artist';
+
+    void playbackNotification.sync({
+      title,
+      artist,
+      isPlaying,
+    });
+  }, [currentTrack, isPlaying]);
 
   if (!currentTrack) return null;
 

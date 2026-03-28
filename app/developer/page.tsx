@@ -5,10 +5,14 @@ import { ArrowLeft, Instagram, Download, CheckCircle2, Github } from 'lucide-rea
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { ANDROID_RELEASE } from '@/lib/android-release';
+import { isAndroidApp, openNativeUpdateUrl } from '@/lib/app-update';
+import { getApiBaseUrl } from '@/lib/config';
 
 export default function DeveloperPage() {
   const router = useRouter();
   const { isInstallable, installPWA } = usePWAInstall();
+  const apkUrl = ANDROID_RELEASE.downloadPath;
 
   return (
     <main className="min-h-screen pb-24">
@@ -62,14 +66,33 @@ export default function DeveloperPage() {
             </a>
           </div>
 
-          {/* Download APK / Install PWA */}
-          <button 
-            onClick={installPWA}
-            className="w-full max-w-sm flex items-center justify-center gap-3 bg-[#FF7A59] hover:bg-[#FF8A6D] text-black font-semibold py-4 px-6 rounded-2xl transition-colors border border-[#FF7A59]/20"
-          >
-            <Download className="w-5 h-5" />
-            <span>Download APK</span>
-          </button>
+          <div className="w-full max-w-sm space-y-3">
+            <button 
+              onClick={() => {
+                const absoluteApkUrl = new URL(apkUrl, getApiBaseUrl() || window.location.origin).toString();
+                if (isAndroidApp()) {
+                  void openNativeUpdateUrl(absoluteApkUrl);
+                  return;
+                }
+
+                window.open(absoluteApkUrl, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-full flex items-center justify-center gap-3 bg-[#FF7A59] hover:bg-[#FF8A6D] text-black font-semibold py-4 px-6 rounded-2xl transition-colors border border-[#FF7A59]/20"
+            >
+              <Download className="w-5 h-5" />
+              <span>Download APK Sonara {ANDROID_RELEASE.versionName}</span>
+            </button>
+
+            {isInstallable && (
+              <button
+                onClick={installPWA}
+                className="w-full flex items-center justify-center gap-3 bg-white/8 hover:bg-white/12 text-white font-semibold py-4 px-6 rounded-2xl transition-colors border border-white/10"
+              >
+                <Download className="w-5 h-5" />
+                <span>Instal versi web</span>
+              </button>
+            )}
+          </div>
         </motion.div>
       </div>
 
