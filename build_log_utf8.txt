@@ -1,0 +1,70 @@
+﻿
+> ai-studio-applet@0.1.0 build
+> next build
+
+   Γû▓ Next.js 15.5.14
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 5.4s
+   Skipping linting
+   Checking validity of types ...
+node.exe : Failed to 
+compile.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (F  
+  ailed to compile.:Str   
+ ing) [], RemoteExcept    
+ion
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+
+./components/Player.tsx:56
+1:30
+Type error: Property 
+'playVideo' does not 
+exist on type 
+'RefObject<any>'.
+
+[0m [90m 559 |[39m     
+[36mif[39m 
+(useYoutubeFallback 
+[33m&&[39m playerRef) {
+ [90m 560 |[39m       
+[36mif[39m (isPlaying) {
+[31m[1m>[22m[39m[90m 
+561 |[39m         
+[36mif[39m 
+([36mtypeof[39m playerRe
+f[33m.[39mplayVideo 
+[33m===[39m 
+[32m'function'[39m) {
+ [90m     |[39m         
+                     
+[31m[1m^[22m[39m
+ [90m 562 |[39m         
+  playerRef[33m.[39mplay
+Video()[33m;[39m
+ [90m 563 |[39m         
+}
+ [90m 564 |[39m       } 
+[36melse[39m 
+[36mif[39m 
+([36mtypeof[39m playerRe
+f[33m.[39mpauseVideo 
+[33m===[39m 
+[32m'function'[39m) 
+{[0m
+Next.js build worker 
+exited with code: 1 and 
+signal: null
+

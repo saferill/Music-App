@@ -556,13 +556,13 @@ export function Player() {
       audio.pause();
     }
 
-    if (useYoutubeFallback && playerRef) {
+    if (useYoutubeFallback && playerRef.current) {
       if (isPlaying) {
-        if (typeof playerRef.playVideo === 'function') {
-          playerRef.playVideo();
+        if (typeof playerRef.current.playVideo === 'function') {
+          playerRef.current.playVideo();
         }
-      } else if (typeof playerRef.pauseVideo === 'function') {
-        playerRef.pauseVideo();
+      } else if (typeof playerRef.current.pauseVideo === 'function') {
+        playerRef.current.pauseVideo();
       }
     }
   }, [useWebDirectPlayback, useYoutubeFallback, streamState.url, isPlaying, setPlaying]);
@@ -751,8 +751,8 @@ export function Player() {
           void audioRef.current.play().catch(() => {
             setPlaying(false);
           });
-        } else if (playerRef && typeof playerRef.playVideo === 'function') {
-          playerRef.playVideo();
+        } else if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+          playerRef.current.playVideo();
         }
       } else if (action === 'pause') {
         setPlaying(false);
