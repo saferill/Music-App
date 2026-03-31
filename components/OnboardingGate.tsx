@@ -416,7 +416,7 @@ export function OnboardingGate() {
                 <button
                   onClick={handleContinue}
                   disabled={!canContinue}
-                  className="rounded-full bg-[#FF7A59] px-6 py-3 text-sm font-semibold text-black transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="rounded-full bg-[var(--accent)] px-8 py-4 text-lg font-bold text-black transition hover:scale-[1.02] shadow-[var(--accent-glow)] disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   Simpan preferensi
                 </button>

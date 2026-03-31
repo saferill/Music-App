@@ -123,7 +123,7 @@ export function AddToPlaylistModal() {
                 <button
                   onClick={handleCreateAndAdd}
                   disabled={!newPlaylistName.trim()}
-                  className="flex-1 py-3 bg-[#FF7A59] text-black rounded-xl font-semibold disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-black transition hover:scale-[1.02] shadow-[var(--accent-glow)]"
                 >
                   Buat & Tambah
                 </button>

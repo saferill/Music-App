@@ -111,24 +111,21 @@ export default function Home() {
       try {
         const queries: { key: string; title?: string; q: string; type?: string }[] = buildHomeQueries(tasteProfile);
 
-        const results = [];
-        for (let i = 0; i < queries.length; i += 3) {
-          const chunk = queries.slice(i, i + 3);
-          const chunkResults = await Promise.all(
-            chunk.map(async ({ key, title, q, type }) => {
-              try {
-                const url = type ? `${getApiBaseUrl()}/api/search?q=${encodeURIComponent(q)}&type=${type}` : `${getApiBaseUrl()}/api/search?q=${encodeURIComponent(q)}`;
-                const res = await fetch(url);
-                if (!res.ok) return { key, title, data: [] };
-                const data = await res.json();
-                return { key, title, data };
-              } catch {
-                return { key, title, data: [] };
-              }
-            })
-          );
-          results.push(...chunkResults);
-        }
+        const results = await Promise.all(
+          queries.map(async ({ key, title, q, type }) => {
+            try {
+              const url = type
+                ? `${getApiBaseUrl()}/api/search?q=${encodeURIComponent(q)}&type=${type}`
+                : `${getApiBaseUrl()}/api/search?q=${encodeURIComponent(q)}`;
+              const res = await fetch(url);
+              if (!res.ok) return { key, title, data: [] };
+              const data = await res.json();
+              return { key, title, data };
+            } catch {
+              return { key, title, data: [] };
+            }
+          })
+        );
 
         const nextCategories: { title: string; tracks: Track[] }[] = [];
 
@@ -175,7 +172,7 @@ export default function Home() {
       <main className="min-h-screen pb-32 md:pb-16">
         <div className="page-shell space-y-6 pt-4 md:space-y-8 md:pt-6">
           <section className="glass-panel-strong rounded-[28px] p-5 md:rounded-[32px] md:p-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#FF7A59]/30 bg-[#FF7A59]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[#FFD4C6]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[var(--accent)]">
               <Sparkles className="h-3.5 w-3.5" />
               Mood Mix
             </div>
@@ -192,7 +189,7 @@ export default function Home() {
               </button>
               <Link
                 href="/search"
-                className="inline-flex items-center gap-2 rounded-full bg-[#FF7A59] px-5 py-3 text-sm font-semibold text-black transition hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-black transition hover:scale-[1.02] shadow-[var(--accent-glow)]"
               >
                 <Search className="h-4 w-4" />
                 Cari lagu lain
@@ -210,15 +207,13 @@ export default function Home() {
                 Buka pencarian
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
               {pills.map((pill) => (
                 <button
                   key={pill}
                   onClick={() => setActiveFilter(activeFilter === pill ? null : pill)}
-                  className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm font-medium transition-colors ${
-                    activeFilter === pill
-                      ? 'border-transparent bg-[#FF7A59] text-black'
-                      : 'border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white'
+                  className={`m3-chip whitespace-nowrap ${
+                    activeFilter === pill ? 'active' : ''
                   }`}
                 >
                   {pill}
@@ -243,7 +238,7 @@ export default function Home() {
         <section className="glass-panel-strong rounded-[28px] p-4 md:rounded-[32px] md:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#FF7A59]/30 bg-[#FF7A59]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[#FFD4C6]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[var(--accent)]">
                 <Sparkles className="h-3.5 w-3.5" />
                 Sonara Picks
               </div>
@@ -262,7 +257,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/search"
-                className="inline-flex items-center gap-2 rounded-full bg-[#FF7A59] px-4 py-2.5 text-sm font-semibold text-black transition hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-black transition hover:scale-[1.02] shadow-[var(--accent-glow)]"
               >
                 <Search className="h-4 w-4" />
                 Cari lagu
@@ -270,12 +265,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-5 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
             {pills.map((pill) => (
               <button
                 key={pill}
                 onClick={() => setActiveFilter(activeFilter === pill ? null : pill)}
-                className="whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/80 transition hover:border-transparent hover:bg-[#FF7A59] hover:text-black"
+                className={`m3-chip whitespace-nowrap ${
+                  activeFilter === pill ? 'active' : ''
+                }`}
               >
                 {pill}
               </button>
@@ -314,7 +311,7 @@ export default function Home() {
                   <div className="truncate text-sm font-bold text-white">{getTrackTitle(track)}</div>
                   <div className="mt-1 truncate text-xs text-white/55">{getArtistName(track)}</div>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FF7A59] text-black shadow-lg transition group-hover:scale-[1.04]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-black shadow-[var(--accent-glow)] transition group-hover:scale-[1.04]">
                   <Play className="ml-0.5 h-4 w-4 fill-current" />
                 </div>
               </motion.button>
@@ -359,7 +356,7 @@ export default function Home() {
                   </div>
                   <button
                     onClick={() => playTrack(track, quickPicksTracks, 'similar')}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF7A59] text-black transition hover:scale-[1.03]"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)] text-black transition hover:scale-[1.03] shadow-[var(--accent-glow)]/50"
                   >
                     <Play className="ml-0.5 h-4 w-4 fill-current" />
                   </button>

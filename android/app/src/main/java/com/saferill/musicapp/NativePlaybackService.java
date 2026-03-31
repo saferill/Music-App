@@ -5,16 +5,22 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaSessionService;
@@ -22,6 +28,13 @@ import androidx.media3.ui.PlayerNotificationManager;
 
 import com.getcapacitor.JSObject;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+@UnstableApi
 public class NativePlaybackService extends MediaSessionService {
     public static final String ACTION_SET_TRACK = "com.saferill.musicapp.native.SET_TRACK";
     public static final String ACTION_PLAY = "com.saferill.musicapp.native.PLAY";
@@ -46,6 +59,7 @@ public class NativePlaybackService extends MediaSessionService {
     private MediaSession mediaSession;
     private PlayerNotificationManager notificationManager;
     private boolean isForeground;
+    private final ExecutorService artworkExecutor = Executors.newSingleThreadExecutor();
 
     private final Handler progressHandler = new Handler(Looper.getMainLooper());
     private final Runnable progressTicker = new Runnable() {
@@ -98,7 +112,17 @@ public class NativePlaybackService extends MediaSessionService {
         super.onCreate();
         createNotificationChannel();
 
-        player = new ExoPlayer.Builder(this).build();
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .build();
+
+        player = new ExoPlayer.Builder(this)
+            .setAudioAttributes(audioAttributes, true)
+            .setHandleAudioBecomingNoisy(true) // Pause on headphones unplugged
+            .setWakeMode(C.WAKE_MODE_NETWORK) // Use WakeLock to keep CPU/Wifi alive
+            .build();
+
         mediaSession = new MediaSession.Builder(this, player)
             .setSessionActivity(buildSessionActivity())
             .build();
@@ -108,11 +132,13 @@ public class NativePlaybackService extends MediaSessionService {
             .setNotificationListener(new SonaraNotificationListener())
             .setSmallIconResourceId(R.mipmap.ic_launcher)
             .build();
+        
         notificationManager.setPlayer(player);
         notificationManager.setUseNextAction(false);
         notificationManager.setUsePreviousAction(false);
         notificationManager.setUseFastForwardAction(false);
         notificationManager.setUseRewindAction(false);
+        notificationManager.setPriority(Notification.PRIORITY_MAX);
 
         player.addListener(new Player.Listener() {
             @Override
@@ -140,7 +166,7 @@ public class NativePlaybackService extends MediaSessionService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int result = super.onStartCommand(intent, flags, startId);
+        super.onStartCommand(intent, flags, startId);
         handleCommand(intent);
         return START_STICKY;
     }
@@ -162,6 +188,7 @@ public class NativePlaybackService extends MediaSessionService {
     @Override
     public void onDestroy() {
         progressHandler.removeCallbacksAndMessages(null);
+        artworkExecutor.shutdownNow();
         if (notificationManager != null) {
             notificationManager.setPlayer(null);
         }
@@ -301,6 +328,8 @@ public class NativePlaybackService extends MediaSessionService {
             NotificationManager.IMPORTANCE_LOW
         );
         channel.setDescription("Kontrol pemutaran native Sonara");
+        channel.setShowBadge(false);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
         NotificationManager manager = getSystemService(NotificationManager.class);
         if (manager != null) {
@@ -338,7 +367,24 @@ public class NativePlaybackService extends MediaSessionService {
 
         @Nullable
         @Override
-        public android.graphics.Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
+        public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
+            MediaItem mediaItem = player.getCurrentMediaItem();
+            if (mediaItem != null && mediaItem.mediaMetadata.artworkUri != null) {
+                String artworkUrl = mediaItem.mediaMetadata.artworkUri.toString();
+                artworkExecutor.execute(() -> {
+                    try {
+                        URL url = new URL(artworkUrl);
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setDoInput(true);
+                        connection.connect();
+                        InputStream input = connection.getInputStream();
+                        Bitmap bitmap = BitmapFactory.decodeStream(input);
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onBitmap(bitmap));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
             return null;
         }
     }
@@ -346,15 +392,16 @@ public class NativePlaybackService extends MediaSessionService {
     private class SonaraNotificationListener implements PlayerNotificationManager.NotificationListener {
         @Override
         public void onNotificationPosted(int notificationId, Notification notification, boolean ongoing) {
-            if (!isForeground) {
-                startForeground(notificationId, notification);
+            if (ongoing && !isForeground) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(notificationId, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+                } else {
+                    startForeground(notificationId, notification);
+                }
                 isForeground = true;
-                return;
-            }
-
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.notify(notificationId, notification);
+            } else if (!ongoing && isForeground) {
+                stopForeground(false);
+                isForeground = false;
             }
         }
 

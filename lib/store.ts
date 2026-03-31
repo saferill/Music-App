@@ -202,10 +202,10 @@ export const usePlayerStore = create<PlayerState>()(
         } else {
           if (playContext === 'similar' && currentTrack) {
             try {
-              const res = await fetch(`${getApiBaseUrl()}/api/upnext?id=${currentTrack.videoId}`);
+              const res = await fetch(`${getApiBaseUrl()}/api/next?id=${currentTrack.videoId}`);
               const data = await res.json();
-              if (Array.isArray(data) && data.length > 0) {
-                const nextTracks = data.filter((t: any) => t.videoId !== currentTrack.videoId);
+              if (data.tracks && Array.isArray(data.tracks) && data.tracks.length > 0) {
+                const nextTracks = data.tracks.filter((t: any) => t.videoId !== currentTrack.videoId);
                 if (nextTracks.length > 0) {
                   const nextTrack = nextTracks[0];
                   

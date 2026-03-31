@@ -4,37 +4,37 @@
   --bg-1: #06050a;
   --bg-2: #110f17;
   --bg-3: #1a1723;
-  --surface: rgba(24, 24, 24, 0.86);
-  --surface-strong: rgba(18, 18, 18, 0.96);
+  --surface: rgba(24, 24, 24, 0.72);
+  --surface-strong: rgba(18, 18, 18, 0.88);
   --stroke: rgba(255, 255, 255, 0.08);
   --text-soft: rgba(255, 255, 255, 0.68);
+  /* Dynamic Variables - Will be updated by BackgroundProvider */
   --accent: #ff7a59;
+  --accent-soft: rgba(255, 122, 89, 0.1);
   --accent-strong: #ff6347;
-  --accent-soft: #ffd4c6;
-  --accent-secondary: #f6c567;
+  --accent-glow: none;
 }
 
 html {
   min-height: 100%;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at top, rgba(255, 122, 89, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 12%, rgba(246, 197, 103, 0.12), transparent 24%),
-    linear-gradient(180deg, #211925 0%, var(--bg-3) 18%, var(--bg-2) 42%, var(--bg-1) 100%);
+    radial-gradient(circle at top, color-mix(in srgb, var(--accent) 12%, transparent), transparent 35%),
+    linear-gradient(180deg, #18141b 0%, var(--bg-1) 100%);
 }
 
 body {
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    linear-gradient(180deg, rgba(255, 122, 89, 0.1) 0%, rgba(18, 15, 24, 0.94) 22%, #050409 100%);
+  background: transparent;
   color: white;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
   background: rgba(255, 122, 89, 0.38);
-  color: #170704;
+  color: #ffffff;
 }
 
 .page-shell {
@@ -43,32 +43,59 @@ body {
   padding-inline: 1rem;
 }
 
+/* SimpMusic Glassmorphism */
 .glass-panel {
   background: var(--surface);
   border: 1px solid var(--stroke);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
 }
 
 .glass-panel-strong {
   background: var(--surface-strong);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(32px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.36);
+}
+
+/* Material 3 Chips */
+.m3-chip {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.m3-chip:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.m3-chip.active {
+  background: var(--accent);
+  color: #000000;
+  box-shadow: var(--accent-glow);
+  border-color: transparent;
 }
 
 .soft-text {
   color: var(--text-soft);
 }
 
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+/* Utility classes not easily done in CSS but kept for compatibility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @media (min-width: 768px) {

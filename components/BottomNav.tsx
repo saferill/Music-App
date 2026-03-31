@@ -35,64 +35,64 @@ export function BottomNav() {
               {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all',
+                        isActive
+                          ? 'bg-[var(--accent)] text-black shadow-[var(--accent-glow)]'
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" strokeWidth={2.2} />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+  
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/history"
+                  className="flex items-center gap-2 rounded-full bg-[#121212] px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-[#1a1a1a] hover:text-white"
+                >
+                  <Clock3 className="h-4 w-4" />
+                  <span>Riwayat</span>
+                </Link>
+                <Link
+                  href="/top50"
+                  className="flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-black transition hover:scale-[1.02] shadow-[var(--accent-glow)]"
+                >
+                  <PlayCircle className="h-4 w-4" />
+                  <span>Top 50</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:hidden">
+          <div className="glass-panel pointer-events-auto rounded-[28px] border border-white/8 bg-black/75 px-2 py-2 shadow-2xl backdrop-blur-xl">
+            <div className="grid h-16 grid-cols-4 gap-1">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
                   <Link
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all',
-                      isActive
-                        ? 'bg-[#ff7a59] text-black shadow-lg'
-                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      'flex h-full flex-col items-center justify-center gap-1 rounded-[22px] transition-colors',
+                      isActive ? 'text-white' : 'text-white/50 hover:text-white/80'
                     )}
                   >
-                    <item.icon className="h-4 w-4" strokeWidth={2.2} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href="/history"
-                className="flex items-center gap-2 rounded-full bg-[#121212] px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-[#1a1a1a] hover:text-white"
-              >
-                <Clock3 className="h-4 w-4" />
-                <span>Riwayat</span>
-              </Link>
-              <Link
-                href="/top50"
-                className="flex items-center gap-2 rounded-full bg-[#ff7a59] px-4 py-2 text-sm font-semibold text-black transition hover:scale-[1.02]"
-              >
-                <PlayCircle className="h-4 w-4" />
-                <span>Top 50</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:hidden">
-        <div className="glass-panel pointer-events-auto rounded-[28px] border border-white/8 bg-black/75 px-2 py-2 shadow-2xl backdrop-blur-xl">
-          <div className="grid h-16 grid-cols-4 gap-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'flex h-full flex-col items-center justify-center gap-1 rounded-[22px] transition-colors',
-                    isActive ? 'text-white' : 'text-white/50 hover:text-white/80'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'rounded-full px-3 py-1 transition-all',
-                      isActive && 'bg-[#ff7a59] text-black shadow-lg'
-                    )}
-                  >
-                    <item.icon className={cn('h-5 w-5', isActive && 'fill-current')} strokeWidth={isActive ? 2.5 : 2} />
-                  </div>
+                    <div
+                      className={cn(
+                        'rounded-full px-3 py-1 transition-all',
+                        isActive && 'bg-[var(--accent)] text-black shadow-[var(--accent-glow)]'
+                      )}
+                    >
+                      <item.icon className={cn('h-5 w-5', isActive && 'fill-current')} strokeWidth={isActive ? 2.5 : 2} />
+                    </div>
                   <span className="text-[10px] font-medium leading-none">{item.name}</span>
                 </Link>
               );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePlayerStore } from '@/lib/store';
 import { FastAverageColor } from 'fast-average-color';
 import { getHighResImage } from '@/lib/utils';
@@ -10,6 +10,7 @@ export function BackgroundProvider() {
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const setDominantColor = usePlayerStore((state) => state.setDominantColor);
   const dominantColor = usePlayerStore((state) => state.dominantColor);
+  const prevColorRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!currentTrack?.thumbnails?.length) {
@@ -43,6 +44,24 @@ export function BackgroundProvider() {
     };
   }, [currentTrack?.videoId, currentTrack?.thumbnails, setDominantColor]);
 
+  // Inject CSS Variables globally
+  useEffect(() => {
+    const root = document.documentElement;
+    if (dominantColor) {
+      root.style.setProperty('--accent', dominantColor);
+      root.style.setProperty('--accent-soft', `color-mix(in srgb, ${dominantColor} 20%, transparent)`);
+      root.style.setProperty('--accent-strong', `color-mix(in srgb, ${dominantColor} 80%, black)`);
+      root.style.setProperty('--accent-glow', `0 0 40px color-mix(in srgb, ${dominantColor} 30%, transparent)`);
+      prevColorRef.current = dominantColor;
+    } else {
+      // Fallback colors
+      root.style.setProperty('--accent', '#ff7a59');
+      root.style.setProperty('--accent-soft', 'rgba(255, 122, 89, 0.1)');
+      root.style.setProperty('--accent-strong', '#ff6347');
+      root.style.setProperty('--accent-glow', 'none');
+    }
+  }, [dominantColor]);
+
   return (
     <div className="fixed inset-0 -z-50 bg-[#0A0A0A] overflow-hidden pointer-events-none">
       <AnimatePresence>
@@ -55,7 +74,7 @@ export function BackgroundProvider() {
             transition={{ duration: 1.5, ease: "easeInOut" }}
             className="absolute inset-0"
             style={{
-              background: `radial-gradient(circle at 50% 0%, color-mix(in srgb, ${dominantColor} 40%, #0A0A0A) 0%, #0A0A0A 100%)`
+              background: `radial-gradient(circle at 50% 0%, color-mix(in srgb, ${dominantColor} 30%, #0A0A0A) 0%, #0A0A0A 100%)`
             }}
           />
         )}

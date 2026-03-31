@@ -13,17 +13,17 @@ export const WEBSITE_URL = 'https://musicapp-lime.vercel.app';
 export const getApiBaseUrl = () => {
   if (typeof window === 'undefined') return '';
   
-  // If running in Capacitor (capacitor:// or http://localhost/ in Android)
-  const isCapacitor = window.location.protocol === 'capacitor:' || 
-                     (window.location.hostname === 'localhost' && window.location.port === '');
-                     
-  // Better yet, just check if we're on the hosted domain
-  if (window.location.host === 'musicapp-lime.vercel.app') {
+  // If running in development (localhost)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return '';
   }
   
-  // Default for native app
-  return WEBSITE_URL;
+  // If running in Capacitor (capacitor://)
+  const isCapacitor = window.location.protocol === 'capacitor:';
+  if (isCapacitor) return WEBSITE_URL;
+
+  // Default for web (relative)
+  return '';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

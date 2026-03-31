@@ -1,9 +1,66 @@
 import { NextResponse } from 'next/server';
-import YTMusic from 'ytmusic-api';
-import { normalizeArtistEntity, normalizeNamedEntity, normalizeTrackList } from '@/lib/media';
+import { searchInnerTube } from '@/lib/innertube';
+import { normalizeTrack } from '@/lib/media';
 
-const ytmusic = new YTMusic();
-let initialized = false;
+/**
+ * Basic InnerTube parser for music app needs
+ */
+function parseInnerTubeSearch(data: any, type?: string) {
+  const contents = data.contents?.tabbedSearchResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents || [];
+  
+  // Find the primary shelf
+  const shelf = contents.find((c: any) => c.musicShelfRenderer)?.musicShelfRenderer;
+  if (!shelf) return [];
+
+  return shelf.contents.map((item: any) => {
+    const renderer = item.musicResponsiveListItemRenderer;
+    if (!renderer) return null;
+
+    const videoId = renderer.playlistItemData?.videoId || 
+                    renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId;
+    
+    // Extract title, artist, duration from flexColumns
+    const flexColumns = renderer.flexColumns || [];
+    const title = flexColumns[0]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.[0]?.text;
+    
+    // For artistic/playlist/song differentiation, check the runs in flexColumn[1]
+    const subtextRuns = flexColumns[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs || [];
+    
+    const artist = subtextRuns[0]?.text;
+    const album = subtextRuns[2]?.text;
+    const durationText = subtextRuns[subtextRuns.length - 1]?.text;
+
+    const thumbnails = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
+
+    if (type === 'artist') {
+      return {
+        type: 'Artist',
+        name: title,
+        artistId: renderer.navigationEndpoint?.browseEndpoint?.browseId,
+        thumbnails,
+      };
+    }
+
+    if (type === 'playlist') {
+      return {
+        type: 'Playlist',
+        name: title,
+        playlistId: renderer.navigationEndpoint?.browseEndpoint?.browseId,
+        thumbnails,
+      };
+    }
+
+    // Default: Song/Video
+    return normalizeTrack({
+      videoId,
+      name: title,
+      artist: { name: artist },
+      album: { name: album },
+      thumbnails,
+      durationText,
+    });
+  }).filter(Boolean);
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,47 +70,9 @@ export async function GET(request: Request) {
   if (!query) return NextResponse.json({ error: 'Query required' }, { status: 400 });
   
   try {
-    if (!initialized) {
-      await ytmusic.initialize();
-      initialized = true;
-    }
+    const rawData = await searchInnerTube(query, type || 'song');
+    const results = parseInnerTubeSearch(rawData, type || 'song');
     
-    if (type === 'playlist') {
-      let playlists = await ytmusic.searchPlaylists(query).catch(e => { console.error('Error searching playlists:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-      // Filter out mixes (IDs starting with RD) as they cannot be fetched via getPlaylist
-      playlists = playlists.filter((p: any) => p.playlistId && !p.playlistId.startsWith('RD'));
-      return NextResponse.json(playlists.map((playlist: Record<string, any>) => normalizeNamedEntity(playlist, 'Playlist')), {
-        headers: {
-          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-        },
-      });
-    }
-    
-    if (type === 'artist') {
-      const artists = await ytmusic.searchArtists(query).catch(e => { console.error('Error searching artists:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-      return NextResponse.json(artists.map((artist: Record<string, any>) => normalizeArtistEntity(artist)), { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
-    }
-    
-    if (type === 'song') {
-      const songs = await ytmusic.searchSongs(query).catch(e => { console.error('Error searching songs:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-      return NextResponse.json(normalizeTrackList(songs), { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
-    }
-    
-    if (type === 'video') {
-      const videos = await ytmusic.searchVideos(query).catch(e => { console.error('Error searching videos:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-      return NextResponse.json(normalizeTrackList(videos), { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
-    }
-
-    // If no type is specified, search sequentially to avoid 403 errors from too many parallel requests
-    const songs = await ytmusic.searchSongs(query).catch(e => { console.error('Error searching songs:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-    const videos = await ytmusic.searchVideos(query).catch(e => { console.error('Error searching videos:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-    const artists = await ytmusic.searchArtists(query).catch(e => { console.error('Error searching artists:', e.name === 'ZodError' ? 'ZodError' : e); return []; });
-    
-    const results = [
-      ...normalizeTrackList(songs),
-      ...normalizeTrackList(videos),
-      ...artists.map((artist: Record<string, any>) => normalizeArtistEntity(artist)),
-    ];
     return NextResponse.json(results, {
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',

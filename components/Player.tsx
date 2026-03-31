@@ -69,12 +69,13 @@ export function Player() {
   });
   const [showLyrics, setShowLyrics] = useState(false);
   const [imageErrorTrackId, setImageErrorTrackId] = useState<string | null>(null);
+  const [sponsorSegments, setSponsorSegments] = useState<Array<{ start: number; end: number }>>([]);
+  const [playerRef, setPlayerRef] = useState<any>(null);
   const [streamState, setStreamState] = useState<StreamState>({
     trackId: null,
     url: null,
     status: 'idle',
   });
-  const playerRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const nativeTrackKeyRef = useRef<string | null>(null);
   const lyricLineRefs = useRef<Array<HTMLParagraphElement | null>>([]);
@@ -186,6 +187,30 @@ export function Player() {
     };
   }, [currentTrack, setDuration, setProgress]);
 
+  // SponsorBlock Fetching
+  useEffect(() => {
+    if (!currentTrack) {
+      setSponsorSegments([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch(`${getApiBaseUrl()}/api/sponsorblock?id=${currentTrack.videoId}`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!controller.signal.aborted) {
+          setSponsorSegments(data.segments || []);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setSponsorSegments([]);
+        }
+      });
+
+    return () => controller.abort();
+  }, [currentTrack]);
+
   useEffect(() => {
     if (!isAndroidNativeAudio()) return;
 
@@ -204,6 +229,14 @@ export function Player() {
 
       if (event.ended && currentTrack?.videoId && event.trackId === currentTrack.videoId) {
         void playNext();
+      }
+
+      // Check SponsorBlock for Native
+      if (typeof event.position === 'number' && sponsorSegments.length > 0) {
+        const matchingSegment = sponsorSegments.find(s => event.position >= s.start && event.position < s.end);
+        if (matchingSegment) {
+          void nativeAudio.seekTo(matchingSegment.end);
+        }
       }
     });
 
@@ -351,7 +384,7 @@ export function Player() {
 
   const onReady = useCallback(
     async (event: any) => {
-      playerRef.current = event.target;
+      setPlayerRef(event.target);
       const duration = await event.target.getDuration();
       setDuration(duration || 0);
 
@@ -392,6 +425,15 @@ export function Player() {
           if (time > 0 && duration > 0 && time >= duration - 1 && playerState !== YouTube.PlayerState.PLAYING) {
             playNext();
           }
+
+          // Check SponsorBlock for YouTube
+          if (sponsorSegments.length > 0) {
+            const matchingSegment = sponsorSegments.find(s => time >= s.start && time < s.end);
+            if (matchingSegment) {
+              playerRef.seekTo(matchingSegment.end, true);
+              setProgress(matchingSegment.end);
+            }
+          }
         }
       }, 1000);
     }
@@ -415,7 +457,17 @@ export function Player() {
     };
 
     const handleTimeUpdate = () => {
-      setProgress(audio.currentTime || 0);
+      const time = audio.currentTime || 0;
+      setProgress(time);
+
+      // Check SponsorBlock for Web Audio
+      if (sponsorSegments.length > 0) {
+        const matchingSegment = sponsorSegments.find(s => time >= s.start && time < s.end);
+        if (matchingSegment) {
+          audio.currentTime = matchingSegment.end;
+          setProgress(matchingSegment.end);
+        }
+      }
     };
 
     const handlePlayEvent = () => {
@@ -833,7 +885,7 @@ export function Player() {
                       cy="50"
                       r="46"
                       fill="none"
-                      stroke="#FF7A59"
+                      stroke="var(--accent)"
                       strokeWidth="4"
                       strokeDasharray={`${2 * Math.PI * 46}`}
                       strokeDashoffset={`${2 * Math.PI * 46 * (1 - (duration > 0 ? progress / duration : 0))}`}
@@ -889,7 +941,7 @@ export function Player() {
                 onClick={handleLike}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white transition-colors hover:bg-white/10"
               >
-                <Heart className={`h-5 w-5 ${isLiked ? 'fill-[#FF7A59] text-[#FF7A59]' : ''}`} />
+                <Heart className={cn('h-5 w-5 transition-colors', isLiked && 'fill-[var(--accent)] text-[var(--accent)]')} />
               </button>
             </div>
           </motion.div>
@@ -936,13 +988,13 @@ export function Player() {
                   >
                     {lyricsStatus === 'loading' ? (
                       <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-white/60">
-                        <Loader2 className="h-6 w-6 animate-spin text-[#FF7A59]" />
+                        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
                         <p className="text-sm sm:text-base">Sonara lagi cari lirik terbaik untuk lagu ini.</p>
                       </div>
                     ) : lyrics ? (
                       <div className="space-y-4 text-center">
                         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-white/60">
-                          <Mic2 className="h-3.5 w-3.5 text-[#FF7A59]" />
+                          <Mic2 className="h-3.5 w-3.5 text-[var(--accent)]" />
                           {lyrics.providerLabel}
                           {lyrics.synced ? ' synced' : ' lyrics'}
                         </div>
@@ -1042,7 +1094,7 @@ export function Player() {
                     max={duration || 100}
                     value={progress || 0}
                     onChange={handleSeek}
-                    className="h-1 w-full appearance-none rounded-full bg-white/20 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                    className="h-1 w-full appearance-none rounded-full bg-white/20 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--accent)] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-[var(--accent)] [&::-webkit-slider-runnable-track]:to-white/20"
                   />
                   <div className="mt-2 flex justify-between font-mono text-xs text-white/50">
                     <span>{formatTime(progress)}</span>
@@ -1059,7 +1111,7 @@ export function Player() {
                   </button>
                   <button
                     onClick={togglePlay}
-                    className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-105 sm:h-20 sm:w-20"
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-black transition-transform hover:scale-105 sm:h-20 sm:w-20 shadow-[var(--accent-glow)]"
                   >
                     {isPlaying ? (
                       <Pause className="h-8 w-8 fill-current sm:h-10 sm:w-10" />

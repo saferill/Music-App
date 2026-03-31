@@ -1,0 +1,18 @@
+{
+  "files.exclude": {
+    "**/.next": true,
+    "**/.gradle-local": true,
+    "**/node_modules": true,
+    "**/android/.gradle": true,
+    "**/android/app/build": true,
+    "**/android/build": true
+  },
+  "search.exclude": {
+    "**/.next": true,
+    "**/.gradle-local": true,
+    "**/node_modules": true,
+    "**/android/.gradle": true,
+    "**/android/app/build": true,
+    "**/android/build": true
+  }
+}

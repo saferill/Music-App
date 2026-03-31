@@ -45,13 +45,12 @@ export function TrackItem({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#333] to-[#222]">
-            <Music className="w-6 h-6 text-gray-500" />
+            <Play className="h-4 w-4 fill-[var(--accent)] text-[var(--accent)]" />
           </div>
         )}
         {isCurrent && isPlaying && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="flex gap-0.5 items-end h-3">
-              <div className="w-1 bg-[#FF7A59] animate-[bounce_1s_infinite_0ms]" />
               <div className="w-1 bg-[#FF7A59] animate-[bounce_1s_infinite_200ms]" />
               <div className="w-1 bg-[#FF7A59] animate-[bounce_1s_infinite_400ms]" />
             </div>
