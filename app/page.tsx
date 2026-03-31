@@ -235,31 +235,31 @@ export default function Home() {
   return (
     <main className="min-h-screen pb-32 md:pb-16">
       <div className="page-shell space-y-6 pt-4 md:space-y-8 md:pt-6">
-        <section className="glass-panel-strong rounded-[28px] p-4 md:rounded-[32px] md:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <section className="glass-panel-strong rounded-[24px] p-4 md:rounded-[28px] md:p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[var(--accent)]">
-                <Sparkles className="h-3.5 w-3.5" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-[var(--accent)]">
+                <Sparkles className="h-3 w-3" />
                 Sonara Picks
               </div>
-              <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl md:text-5xl">Beranda</h1>
-              <p className="mt-3 max-w-xl text-base leading-7 text-white/70">
-                Temukan lagu, playlist, dan artis favoritmu dengan tampilan yang lebih bersih, tanpa banner besar di bagian atas.
+              <h1 className="mt-3 text-2xl font-semibold text-white sm:text-3xl md:text-4xl">Beranda</h1>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-white/70">
+                Temukan lagu, playlist, dan artis favoritmu dengan tampilan yang lebih bersih.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               <Link
                 href="/history"
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
               >
-                <History className="h-4 w-4" />
+                <History className="h-3.5 w-3.5" />
                 Riwayat
               </Link>
               <Link
                 href="/search"
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-black transition hover:scale-[1.02] shadow-[var(--accent-glow)]"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-black transition hover:scale-[1.02] shadow-[var(--accent-glow)]"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-3.5 w-3.5" />
                 Cari lagu
               </Link>
             </div>

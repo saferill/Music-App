@@ -41,6 +41,8 @@ async function testNext(videoId: string) {
 
 // Dummy Test
 const testId = 'jfKfPfyJRdk'; // Lofi Girl or similar
-// We can't actually run this against the dev server easily without starting it, 
-// but I'll provide it as a scratch script for the user.
-console.log('Script ready. Run with "npx tsx test-apis.ts" while dev server is running.');
+(async () => {
+    await testSponsorBlock(testId);
+    await testStream(testId);
+    await testNext(testId);
+})();

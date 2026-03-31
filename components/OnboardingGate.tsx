@@ -190,9 +190,18 @@ export function OnboardingGate() {
               exit={{ opacity: 0, y: 20 }}
               className="glass-panel-strong w-full rounded-[36px] p-5 sm:p-8"
             >
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#FF7A59]/25 bg-[#FF7A59]/10 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[#FFD4C6]">
-                <Sparkles className="h-3.5 w-3.5" />
-                Setup Awal
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#FF7A59]/25 bg-[#FF7A59]/10 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[#FFD4C6]">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Setup Awal
+                </div>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="rounded-full bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white"
+                  title="Lewati setup"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
 
               <h1 className="mt-4 text-3xl font-semibold text-white sm:text-5xl">

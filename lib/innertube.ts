@@ -4,9 +4,9 @@ const INNERTUBE_BASE_URL = 'https://music.youtube.com/youtubei/v1';
 export const CLIENTS = {
   IOS: {
     name: 'IOS',
-    version: '17.07.2',
+    version: '17.33.2',
     clientName: 5,
-    userAgent: 'com.google.ios.youtubemusic/17.07.2 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X; en_US)',
+    userAgent: 'com.google.ios.youtubemusic/17.33.2 (iPhone16,2; U; CPU iOS 17_0 like Mac OS X; en_US)',
   },
   ANDROID: {
     name: 'ANDROID',
@@ -62,7 +62,7 @@ export async function fetchFromInnerTube(endpoint: string, body: Record<string, 
       'User-Agent': client.userAgent,
       'X-YouTube-Client-Name': String(client.clientName),
       'X-YouTube-Client-Version': client.version,
-      'X-Origin': 'https://music.youtube.com',
+      'Origin': 'https://music.youtube.com',
       'Referer': 'https://music.youtube.com/',
     },
     body: JSON.stringify({
@@ -109,12 +109,6 @@ export async function searchInnerTube(query: string, type?: string) {
     query,
   };
 
-  // Map user-friendly types to InnerTube search params if needed
-  // For 'audio' search usually we use params or just filter later
-  if (type === 'song') params.params = 'EgWKAQIIAWoQEAMQBBAJEAoQDRAREBAQ'; // Sample params for songs
-  if (type === 'video') params.params = 'EgWKAQIQAWoQEAMQBBAJEAoQDRAREBAQ';
-  if (type === 'artist') params.params = 'EgWKAQIYAWoQEAMQBBAJEAoQDRAREBAQ';
-  if (type === 'playlist') params.params = 'EgWKAQIoAWoQEAMQBBAJEAoQDRAREBAQ';
-
-  return await fetchFromInnerTube('search', params, CLIENTS.IOS);
+  // WEB_REMIX is much more stable for search queries
+  return await fetchFromInnerTube('search', params, CLIENTS.WEB);
 }

@@ -19,7 +19,12 @@ export function BackgroundProvider() {
     }
 
     const fac = new FastAverageColor();
-    const imageUrl = getHighResImage(currentTrack.thumbnails[currentTrack.thumbnails.length - 1].url, 400);
+    const thumbnails = currentTrack.thumbnails;
+    if (!Array.isArray(thumbnails) || thumbnails.length === 0) {
+      setDominantColor(null);
+      return;
+    }
+    const imageUrl = getHighResImage(thumbnails[thumbnails.length - 1].url, 400);
 
     const img = new Image();
     img.crossOrigin = 'Anonymous';

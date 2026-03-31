@@ -28,16 +28,19 @@ export async function GET(request: Request) {
       const info = item.playlistPanelVideoRenderer;
       if (!info) return null;
 
+      const title = info.title?.runs?.[0]?.text || info.title?.simpleText || 'Unknown';
+      const artist = info.longBylineText?.runs?.[0]?.text || info.shortBylineText?.runs?.[0]?.text || 'Unknown Artist';
+
       return {
         videoId: info.videoId,
-        name: info.title?.runs?.[0]?.text,
+        name: title,
         artist: {
-          name: info.longBylineText?.runs?.[0]?.text || info.shortBylineText?.runs?.[0]?.text,
+          name: artist,
         },
         thumbnails: info.thumbnail?.thumbnails || [],
         duration: info.lengthText?.runs?.[0]?.text ? parseDuration(info.lengthText.runs[0].text) : 0,
       };
-    }).filter(Boolean);
+    }).filter((t: any) => t && t.videoId);
 
     return NextResponse.json({
       tracks: normalizeTrackList(tracks),

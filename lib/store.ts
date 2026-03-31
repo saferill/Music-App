@@ -201,12 +201,15 @@ export const usePlayerStore = create<PlayerState>()(
           primeQueueNeighbor(queue, nextIndex);
         } else {
           if (playContext === 'similar' && currentTrack) {
+            set({ isPlaying: false });
             try {
               const res = await fetch(`${getApiBaseUrl()}/api/next?id=${currentTrack.videoId}`);
               const data = await res.json();
               if (data.tracks && Array.isArray(data.tracks) && data.tracks.length > 0) {
-                const nextTracks = data.tracks.filter((t: any) => t.videoId !== currentTrack.videoId);
-                if (nextTracks.length > 0) {
+                const rawNextTracks = data.tracks.filter((t: any) => t.videoId && t.videoId !== currentTrack.videoId);
+                const nextTracks = sanitizeQueue(rawNextTracks);
+
+                if (nextTracks && nextTracks.length > 0) {
                   const nextTrack = nextTracks[0];
                   
                   const state = get();
@@ -229,8 +232,10 @@ export const usePlayerStore = create<PlayerState>()(
 
                   primeLyrics(nextTrack);
                   primeStream(nextTrack);
-                  primeLyrics(nextTracks[1]);
-                  primeStream(nextTracks[1]);
+                  if (nextTracks[1]) {
+                    primeLyrics(nextTracks[1]);
+                    primeStream(nextTracks[1]);
+                  }
                   return;
                 }
               }

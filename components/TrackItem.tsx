@@ -1,7 +1,7 @@
 'use client';
 
 import { Track, usePlayerStore } from '@/lib/store';
-import { MoreHorizontal, Music } from 'lucide-react';
+import { MoreHorizontal, Music, Play } from 'lucide-react';
 import Image from 'next/image';
 import { getHighResImage } from '@/lib/utils';
 import { useState } from 'react';

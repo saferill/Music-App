@@ -70,7 +70,7 @@ export function Player() {
   const [showLyrics, setShowLyrics] = useState(false);
   const [imageErrorTrackId, setImageErrorTrackId] = useState<string | null>(null);
   const [sponsorSegments, setSponsorSegments] = useState<Array<{ start: number; end: number }>>([]);
-  const [playerRef, setPlayerRef] = useState<any>(null);
+  const playerRef = useRef<any>(null);
   const [streamState, setStreamState] = useState<StreamState>({
     trackId: null,
     url: null,
@@ -114,9 +114,13 @@ export function Player() {
       return;
     }
 
-    nativeTrackKeyRef.current = null;
-    if (isAndroidNativeAudio()) {
-      void nativeAudio.stop();
+    if (!currentTrack.videoId) {
+      setStreamState({
+        trackId: null,
+        url: null,
+        status: 'fallback',
+      });
+      return;
     }
 
     const controller = new AbortController();
@@ -189,13 +193,13 @@ export function Player() {
 
   // SponsorBlock Fetching
   useEffect(() => {
-    if (!currentTrack) {
+    if (!currentTrack || !currentTrack.videoId) {
       setSponsorSegments([]);
       return;
     }
 
     const controller = new AbortController();
-    fetch(`${getApiBaseUrl()}/api/sponsorblock?id=${currentTrack.videoId}`, { signal: controller.signal })
+    fetch(`${getApiBaseUrl()}/api/sponsorblock?id=${encodeURIComponent(currentTrack.videoId)}`, { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         if (!controller.signal.aborted) {
@@ -232,8 +236,9 @@ export function Player() {
       }
 
       // Check SponsorBlock for Native
-      if (typeof event.position === 'number' && sponsorSegments.length > 0) {
-        const matchingSegment = sponsorSegments.find(s => event.position >= s.start && event.position < s.end);
+      const position = event.position;
+      if (typeof position === 'number' && sponsorSegments.length > 0) {
+        const matchingSegment = sponsorSegments.find(s => position >= s.start && position < s.end);
         if (matchingSegment) {
           void nativeAudio.seekTo(matchingSegment.end);
         }
@@ -383,12 +388,9 @@ export function Player() {
   }, [currentTrack]);
 
   const onReady = useCallback(
-    async (event: any) => {
-      setPlayerRef(event.target);
-      const duration = await event.target.getDuration();
-      setDuration(duration || 0);
-
-      if (isPlaying && typeof event.target.playVideo === 'function') {
+    (event: any) => {
+      playerRef.current = event.target;
+      if (isPlaying) {
         event.target.playVideo();
       }
     },
@@ -416,23 +418,29 @@ export function Player() {
     let interval: NodeJS.Timeout;
     if (isPlaying && useYoutubeFallback) {
       interval = setInterval(async () => {
-        if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
-          const time = await playerRef.current.getCurrentTime();
-          const playerState = await playerRef.current.getPlayerState();
-          setProgress(time || 0);
+        const player = playerRef.current;
+        // CRITICAL GUARD: Ensure player and iframe are still alive
+        if (player && typeof player.getCurrentTime === 'function' && player.getIframe()) {
+          try {
+            const time = await player.getCurrentTime();
+            const playerState = await player.getPlayerState();
+            setProgress(time || 0);
 
-          // Robust background ending check: if we're at the end and it's not playing, trigger next
-          if (time > 0 && duration > 0 && time >= duration - 1 && playerState !== YouTube.PlayerState.PLAYING) {
-            playNext();
-          }
-
-          // Check SponsorBlock for YouTube
-          if (sponsorSegments.length > 0) {
-            const matchingSegment = sponsorSegments.find(s => time >= s.start && time < s.end);
-            if (matchingSegment) {
-              playerRef.seekTo(matchingSegment.end, true);
-              setProgress(matchingSegment.end);
+            // Robust background ending check
+            if (time > 0 && duration > 0 && time >= duration - 1 && playerState !== YouTube.PlayerState.PLAYING) {
+              playNext();
             }
+
+            // Check SponsorBlock
+            if (sponsorSegments.length > 0) {
+              const matchingSegment = sponsorSegments.find(s => time >= s.start && time < s.end);
+              if (matchingSegment) {
+                player.seekTo(matchingSegment.end, true);
+                setProgress(matchingSegment.end);
+              }
+            }
+          } catch (e) {
+            // Silently ignore if player is in a weird state
           }
         }
       }, 1000);
@@ -548,13 +556,13 @@ export function Player() {
       audio.pause();
     }
 
-    if (useYoutubeFallback && playerRef.current) {
+    if (useYoutubeFallback && playerRef) {
       if (isPlaying) {
-        if (typeof playerRef.current.playVideo === 'function') {
-          playerRef.current.playVideo();
+        if (typeof playerRef.playVideo === 'function') {
+          playerRef.playVideo();
         }
-      } else if (typeof playerRef.current.pauseVideo === 'function') {
-        playerRef.current.pauseVideo();
+      } else if (typeof playerRef.pauseVideo === 'function') {
+        playerRef.pauseVideo();
       }
     }
   }, [useWebDirectPlayback, useYoutubeFallback, streamState.url, isPlaying, setPlaying]);
@@ -642,19 +650,23 @@ export function Player() {
       ? currentTrack.artist.map((a) => a.name).join(', ')
       : currentTrack.artist?.name || 'Unknown Artist';
 
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: trackTitle,
-      artist: artistName,
-      album: 'Sonara',
-      artwork: [
-        { src: getHighResImage(thumbnail, 96), sizes: '96x96', type: 'image/jpeg' },
-        { src: getHighResImage(thumbnail, 128), sizes: '128x128', type: 'image/jpeg' },
-        { src: getHighResImage(thumbnail, 192), sizes: '192x192', type: 'image/jpeg' },
-        { src: getHighResImage(thumbnail, 256), sizes: '256x256', type: 'image/jpeg' },
-        { src: getHighResImage(thumbnail, 384), sizes: '384x384', type: 'image/jpeg' },
-        { src: getHighResImage(thumbnail, 512), sizes: '512x512', type: 'image/jpeg' },
-      ],
-    });
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: trackTitle,
+        artist: artistName,
+        album: 'Sonara',
+        artwork: [
+          { src: getHighResImage(thumbnail, 96), sizes: '96x96', type: 'image/jpeg' },
+          { src: getHighResImage(thumbnail, 128), sizes: '128x128', type: 'image/jpeg' },
+          { src: getHighResImage(thumbnail, 192), sizes: '192x192', type: 'image/jpeg' },
+          { src: getHighResImage(thumbnail, 256), sizes: '256x256', type: 'image/jpeg' },
+          { src: getHighResImage(thumbnail, 384), sizes: '384x384', type: 'image/jpeg' },
+          { src: getHighResImage(thumbnail, 512), sizes: '512x512', type: 'image/jpeg' },
+        ],
+      });
+    } catch (e) {
+      console.error('Failed to update MediaSession metadata:', e);
+    }
   }, [currentTrack]);
 
   // Handle Media Session Actions
@@ -724,7 +736,7 @@ export function Player() {
         try { navigator.mediaSession.setActionHandler(h as any, null); } catch(e) {}
       });
     };
-  }, [useNativeDirectPlayback, useWebDirectPlayback, setPlaying, playPrev, playNext, setProgress, progress, duration]);
+  }, [useNativeDirectPlayback, useWebDirectPlayback, setPlaying, playPrev, playNext, setProgress, progress, duration, playerRef]);
 
   useEffect(() => {
     if (useNativeDirectPlayback) {
@@ -739,8 +751,8 @@ export function Player() {
           void audioRef.current.play().catch(() => {
             setPlaying(false);
           });
-        } else if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
-          playerRef.current.playVideo();
+        } else if (playerRef && typeof playerRef.playVideo === 'function') {
+          playerRef.playVideo();
         }
       } else if (action === 'pause') {
         setPlaying(false);
@@ -769,7 +781,11 @@ export function Player() {
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
     
-    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    try {
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    } catch (e) {
+      console.error('Error setting playback state:', e);
+    }
     
     // Update position state for consistent progress on lock screen
     if ('setPositionState' in navigator.mediaSession) {

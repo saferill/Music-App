@@ -199,7 +199,8 @@ export function normalizeTrackList(input: unknown) {
 
   return input
     .filter((entry): entry is Record<string, any> => Boolean(entry) && typeof entry === 'object')
-    .map((track) => normalizeTrack(track));
+    .map((track) => normalizeTrack(track))
+    .filter((track) => Boolean(track.videoId && track.videoId.length > 0));
 }
 
 export function normalizeArtistEntity<T extends Record<string, any>>(rawArtist: T) {

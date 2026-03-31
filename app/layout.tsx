@@ -6,7 +6,6 @@ import { Player } from '@/components/Player';
 import { AddToPlaylistModal } from '@/components/AddToPlaylistModal';
 import { PWARegister } from '@/components/PWARegister';
 import { BackgroundProvider } from '@/components/BackgroundProvider';
-import { OnboardingGate } from '@/components/OnboardingGate';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { AppUpdateNotifier } from '@/components/AppUpdateNotifier';
 
@@ -45,7 +44,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <Script src="https://www.youtube.com/iframe_api" strategy="beforeInteractive" />
         <BackgroundProvider />
         <PWARegister />
-        <OnboardingGate />
+        {/* OnboardingGate removed per user request */}
         {children}
         <Player />
         <BottomNav />
