@@ -68,14 +68,6 @@ This project is not an official product of YouTube, Google, or Spotify.
 - Requests to third-party services only happen when related features are used, such as streaming, lyrics, APK updates, SponsorBlock, or dislike counters.
 - The Android build in this repository supports Sentry crash reporting integration, but its actual behavior still depends on the build configuration used by the developer.
 
-## Download
-
-- Website / PWA: `https://musicapp-lime.vercel.app`
-- Latest Android APK: `https://musicapp-lime.vercel.app/download/android/latest`
-- GitHub Releases: `https://github.com/safe-rill/sonara-music/releases/latest`
-
-The `/download/android/latest` link is a stable URL. When the APK is updated in GitHub Releases, the URL stays the same and automatically points to the newest release file.
-
 ## Project Structure
 
 - [`androidApp/`](androidApp/) contains the Android entry point.

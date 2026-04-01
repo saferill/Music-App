@@ -14,5 +14,6 @@
     "**/android/.gradle": true,
     "**/android/app/build": true,
     "**/android/build": true
-  }
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
 }
