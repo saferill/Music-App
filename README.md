@@ -1,49 +1,83 @@
-# Sonara
+# Sonara Music
 
-Sonara adalah aplikasi pemutar musik modern yang dibangun menggunakan Next.js. Dirancang untuk memberikan pengalaman mendengarkan musik yang mulus dan personal, memungkinkan Anda menjelajahi jutaan lagu, mengelola koleksi musik Anda, dan menemukan artis baru dengan antarmuka yang intuitif dan responsif.
+Sonara Music is a music streaming project that includes an Android app and a web app/PWA. Both use YouTube Music and YouTube as the main content sources, then wrap them in a lighter, faster, and more personal listening experience for everyday use.
 
-## Fitur
-- **Pengelolaan Playlist:** Buat, edit, dan hapus playlist kustom Anda. Tambahkan lagu dari berbagai sumber dan nikmati pemutaran tanpa henti. Aplikasi ini mendukung playlist lokal dan eksternal (misalnya, dari YouTube Music API).
-- **Lagu Disukai:** Simpan dan akses cepat semua lagu favorit Anda di satu tempat.
-- **Jelajah Artis:** Temukan profil artis secara mendalam, lihat diskografi lengkap mereka (lagu teratas, album, single, video), dan subscribe untuk mendapatkan pembaruan dari artis favorit Anda.
-- **Pengalaman Pemutaran:** Putar lagu individual, seluruh playlist, atau mulai mode radio berdasarkan lagu untuk menemukan musik serupa.
-- **Perpustakaan Pribadi:** Akses berbagai kategori di perpustakaan musik Anda, termasuk lagu yang disukai, playlist kustom, artis yang disubscribe, riwayat putar, dan dukungan untuk lagu yang diunduh serta diunggah.
-- **Dukungan Progressive Web App (PWA):** Instal aplikasi ini langsung ke perangkat Anda untuk akses cepat dan pengalaman seperti aplikasi native.
-- **Antarmuka Pengguna Responsif:** Nikmati pengalaman yang konsisten dan optimal di berbagai perangkat, dari desktop hingga seluler.
-- **Integrasi Eksternal:** Mengambil dan menampilkan data musik dari sumber eksternal untuk memperkaya konten yang tersedia.
+This project is not an official product of YouTube, Google, or Spotify.
 
-## Run Locally
+## Platform
 
-**Prerequisites:**  Node.js
+- `Sonara Music Android` for streaming, library management, lyrics, offline downloads, and playback on Android devices.
+- `Sonara Music Web` for browser-based streaming, PWA installation, and sharing the latest APK download link.
+- `Stable download route` that always points to the latest Android APK release.
 
-1. Install dependencies:
-   `npm install`
-2. Jalankan aplikasi dalam mode pengembangan:
-   `npm run dev`
+## Android App Features
 
-Ini akan memulai server pengembangan di `http://localhost:3000`.
+- Play music and videos from YouTube Music/YouTube without ads, including background playback.
+- Explore home, charts, podcasts, moods, genres, and quick recommendations.
+- Search songs, artists, albums, videos, podcasts, and playlists from one place.
+- Download songs, albums, or playlists for offline playback.
+- Audio caching and offline playback support for a more data-friendly experience.
+- Synced lyrics, multiple lyric providers, and AI-based lyric translation.
+- Local playlists, liked songs, personal mixes, and selective YouTube Music sync features.
+- Listening history, playback stats, and a cleaner library experience.
+- SponsorBlock and Return YouTube Dislike support for a cleaner video experience.
+- Android Auto, widgets, player notifications, sleep timer, and full media controls.
 
-## Android App
+## Web / PWA Features
 
-Project ini juga sudah disiapkan sebagai aplikasi Android menggunakan Capacitor.
+- Stream music directly from the browser with a modern player.
+- Installable to the home screen as a PWA.
+- Search songs, artists, albums, and playlists.
+- Dedicated pages for artists, albums, playlists, history, top 50, and library.
+- Local playlists, liked songs, followed artists, and recent searches stored in the browser.
+- Song lyrics, track sharing, and playback notifications.
+- Developer page with quick access to the developer profile and the latest APK download button.
+- `/download/android/latest` route as a stable Android download link.
 
-### Build APK debug
+## Data Sources
 
-1. Pastikan Android SDK dan Android Studio sudah terpasang.
-2. Sinkronkan project Android:
-   `npx cap sync android`
-3. Build APK debug:
-   Dari folder `android`, jalankan `gradlew.bat assembleDebug`
+- The main catalog of audio, video, albums, artists, and playlists comes from YouTube Music and YouTube.
+- Lyrics may come from multiple providers such as YouTube Transcript, LRCLIB, Lyrics.ovh, KuGou, and other providers used by specific features or platforms.
+- Segment skipping uses SponsorBlock.
+- Video dislike counts use Return YouTube Dislike.
+- Android update metadata and the latest APK files are pulled from GitHub Releases.
 
-File hasilnya akan ada di:
-`android/app/build/outputs/apk/debug/app-debug.apk`
+## Locally Stored Data
 
-### Build release
+### On Android
 
-Untuk release signed, buat file `android/keystore.properties` berdasarkan `android/keystore.properties.example`, lalu isi path ke file keystore dan password-nya.
+- App settings.
+- Image, audio, and playback cache.
+- Local playlists and library data.
+- Listening history and playback statistics.
+- Offline download data.
 
-Setelah itu, dari folder `android`, jalankan:
-`gradlew.bat assembleRelease`
+### On Web
 
-Jika ingin format bundle untuk Play Store:
-`gradlew.bat bundleRelease`
+- Local playlists.
+- Liked songs.
+- Followed artists.
+- Recent searches.
+- Taste profile / onboarding preferences.
+- Playback history and update status stored in the browser.
+
+## Privacy
+
+- Sonara Music does not use its own internal Sonara account system.
+- Most personal data is stored locally on the user's device or browser.
+- Requests to third-party services only happen when related features are used, such as streaming, lyrics, APK updates, SponsorBlock, or dislike counters.
+- The Android build in this repository supports Sentry crash reporting integration, but its actual behavior still depends on the build configuration used by the developer.
+
+## Download
+
+- Website / PWA: `https://musicapp-lime.vercel.app`
+- Latest Android APK: `https://musicapp-lime.vercel.app/download/android/latest`
+- GitHub Releases: `https://github.com/safe-rill/sonara-music/releases/latest`
+
+The `/download/android/latest` link is a stable URL. When the APK is updated in GitHub Releases, the URL stays the same and automatically points to the newest release file.
+
+## Project Structure
+
+- [`androidApp/`](androidApp/) contains the Android entry point.
+- [`composeApp/`](composeApp/) contains the shared UI and core application logic.
+- [`sonara-web/`](sonara-web/) contains the website and Next.js-based web app.
