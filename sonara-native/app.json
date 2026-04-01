@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "extra": {
       "eas": {
         "projectId": "71588212-990d-495e-b897-9b652da194d2"
@@ -44,7 +44,7 @@
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "2.2.0"
+            "kotlinVersion": "2.0.21"
           }
         }
       ]
