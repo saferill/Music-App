@@ -25,5 +25,3 @@ export const getApiBaseUrl = () => {
   // Default for web (relative)
   return '';
 };
-
-export const API_BASE_URL = getApiBaseUrl();

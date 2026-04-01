@@ -217,7 +217,7 @@ public class NativePlaybackService extends MediaSessionService {
         if (intent == null || player == null) return;
 
         String action = intent.getAction();
-        } else if (ACTION_SET_TRACK.equals(action) || ACTION_SET_QUEUE.equals(action)) {
+        if (ACTION_SET_TRACK.equals(action) || ACTION_SET_QUEUE.equals(action)) {
             handleSetQueue(intent);
         } else if (ACTION_ADD_TRACK.equals(action)) {
             handleAddTrack(intent);

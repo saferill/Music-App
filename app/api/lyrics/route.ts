@@ -4,6 +4,8 @@ import { inflateSync } from 'node:zlib';
 import YTMusic from 'ytmusic-api';
 import { LyricsPayload, parseLrcLyrics, splitPlainLyrics } from '@/lib/lyrics';
 
+export const runtime = 'nodejs';
+
 const ytmusic = new YTMusic();
 let initializePromise: Promise<unknown> | null = null;
 const lyricsCache = new Map<string, LyricsPayload | null>();
