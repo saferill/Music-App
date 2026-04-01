@@ -1,12 +1,17 @@
 {
   "expo": {
     "name": "sonara-native",
-    "slug": "sonara-native",
+    "slug": "sonara-music-0ey2k3",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "71588212-990d-495e-b897-9b652da194d2"
+      }
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
