@@ -1,22 +1,21 @@
-name: Build Android APK
+name: Build Capacitor Android APK
 on:
   push:
     branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: sonara-native/package-lock.json
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -24,27 +23,38 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install dependencies
-        working-directory: sonara-native
+      - name: Install root dependencies
         run: npm install
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-cache: true
+      - name: Build Next.js app
+        # Perintah ini akan membuat folder 'out' yang dibutuhkan oleh Capacitor
+        run: npm run build
 
-      - name: Prebuild Native Android
-        working-directory: sonara-native
-        run: npx expo prebuild --platform android
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+        working-directory: android
 
       - name: Build Android Release APK
-        working-directory: sonara-native/android
         run: ./gradlew assembleRelease
+        working-directory: android
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: sonara-native-release-apk
-          path: sonara-native/android/app/build/outputs/apk/release/*.apk
+          name: sonara-capacitor-release-apk
+          # Workflow ini akan menghasilkan APK yang belum ditandatangani (unsigned)
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
