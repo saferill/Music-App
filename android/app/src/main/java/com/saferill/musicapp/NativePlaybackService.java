@@ -36,11 +36,17 @@ import java.util.concurrent.Executors;
 
 @UnstableApi
 public class NativePlaybackService extends MediaSessionService {
-    public static final String ACTION_SET_TRACK = "com.saferill.musicapp.native.SET_TRACK";
+    public static final String ACTION_SET_QUEUE = "com.saferill.musicapp.native.SET_QUEUE";
+    public static final String ACTION_ADD_TRACK = "com.saferill.musicapp.native.ADD_TRACK";
+    public static final String ACTION_REMOVE_TRACK = "com.saferill.musicapp.native.REMOVE_TRACK";
+    public static final String ACTION_SET_SHUFFLE = "com.saferill.musicapp.native.SET_SHUFFLE";
+    public static final String ACTION_SET_REPEAT = "com.saferill.musicapp.native.SET_REPEAT";
     public static final String ACTION_PLAY = "com.saferill.musicapp.native.PLAY";
     public static final String ACTION_PAUSE = "com.saferill.musicapp.native.PAUSE";
     public static final String ACTION_STOP = "com.saferill.musicapp.native.STOP";
     public static final String ACTION_SEEK = "com.saferill.musicapp.native.SEEK";
+    public static final String ACTION_PREV = "com.saferill.musicapp.native.PREV";
+    public static final String ACTION_NEXT = "com.saferill.musicapp.native.NEXT";
 
     private static final String EXTRA_TRACK_ID = "trackId";
     private static final String EXTRA_URL = "url";
@@ -134,8 +140,8 @@ public class NativePlaybackService extends MediaSessionService {
             .build();
         
         notificationManager.setPlayer(player);
-        notificationManager.setUseNextAction(false);
-        notificationManager.setUsePreviousAction(false);
+        notificationManager.setUseNextAction(true);
+        notificationManager.setUsePreviousAction(true);
         notificationManager.setUseFastForwardAction(false);
         notificationManager.setUseRewindAction(false);
         notificationManager.setPriority(Notification.PRIORITY_MAX);
@@ -211,8 +217,26 @@ public class NativePlaybackService extends MediaSessionService {
         if (intent == null || player == null) return;
 
         String action = intent.getAction();
-        if (ACTION_SET_TRACK.equals(action)) {
-            handleSetTrack(intent);
+        } else if (ACTION_SET_TRACK.equals(action) || ACTION_SET_QUEUE.equals(action)) {
+            handleSetQueue(intent);
+        } else if (ACTION_ADD_TRACK.equals(action)) {
+            handleAddTrack(intent);
+        } else if (ACTION_REMOVE_TRACK.equals(action)) {
+            int index = intent.getIntExtra(EXTRA_POSITION, -1);
+            if (index >= 0 && player.getMediaItemCount() > index) {
+                player.removeMediaItem(index);
+            }
+        } else if (ACTION_SET_SHUFFLE.equals(action)) {
+            boolean shuffle = intent.getBooleanExtra("shuffle", false);
+            player.setShuffleModeEnabled(shuffle);
+        } else if (ACTION_NEXT.equals(action)) {
+            if (player.hasNextMediaItem()) {
+                player.seekToNext();
+            }
+        } else if (ACTION_PREV.equals(action)) {
+            if (player.hasPreviousMediaItem()) {
+                player.seekToPrevious();
+            }
         } else if (ACTION_PLAY.equals(action)) {
             player.play();
             emitPlaybackState("play");
@@ -230,59 +254,80 @@ public class NativePlaybackService extends MediaSessionService {
         }
     }
 
-    private void handleSetTrack(Intent intent) {
+    private void handleSetQueue(Intent intent) {
         if (player == null) return;
 
-        String trackId = intent.getStringExtra(EXTRA_TRACK_ID);
-        String url = intent.getStringExtra(EXTRA_URL);
-        String title = intent.getStringExtra(EXTRA_TITLE);
-        String artist = intent.getStringExtra(EXTRA_ARTIST);
-        String artworkUrl = intent.getStringExtra(EXTRA_ARTWORK_URL);
+        // Extract multiple tracks if present
+        String[] urls = intent.getStringArrayExtra("urls");
+        String[] titles = intent.getStringArrayExtra("titles");
+        String[] artists = intent.getStringArrayExtra("artists");
+        String[] artworkUrls = intent.getStringArrayExtra("artworkUrls");
+        String[] trackIds = intent.getStringArrayExtra("trackIds");
+        int startIndex = intent.getIntExtra("startIndex", 0);
         boolean autoplay = intent.getBooleanExtra(EXTRA_AUTOPLAY, true);
         double positionSeconds = intent.getDoubleExtra(EXTRA_POSITION, 0D);
 
-        if (url == null || url.isEmpty()) {
-            return;
+        if (urls == null || urls.length == 0) {
+            // Fallback to single track if sent via old intent format
+            String singleUrl = intent.getStringExtra(EXTRA_URL);
+            if (singleUrl != null) {
+                urls = new String[]{singleUrl};
+                titles = new String[]{intent.getStringExtra(EXTRA_TITLE)};
+                artists = new String[]{intent.getStringExtra(EXTRA_ARTIST)};
+                artworkUrls = new String[]{intent.getStringExtra(EXTRA_ARTWORK_URL)};
+                trackIds = new String[]{intent.getStringExtra(EXTRA_TRACK_ID)};
+            } else {
+                return;
+            }
         }
 
-        MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()
-            .setTitle(title == null || title.isEmpty() ? "Sonara" : title)
-            .setArtist(artist == null ? "" : artist);
+        java.util.List<MediaItem> mediaItems = new java.util.ArrayList<>();
+        for (int i = 0; i < urls.length; i++) {
+            MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()
+                .setTitle(titles[i] == null || titles[i].isEmpty() ? "Sonara" : titles[i])
+                .setArtist(artists[i] == null ? "" : artists[i]);
 
-        if (artworkUrl != null && !artworkUrl.isEmpty()) {
-            metadataBuilder.setArtworkUri(Uri.parse(artworkUrl));
+            if (artworkUrls[i] != null && !artworkUrls[i].isEmpty()) {
+                metadataBuilder.setArtworkUri(Uri.parse(artworkUrls[i]));
+            }
+
+            mediaItems.add(new MediaItem.Builder()
+                .setMediaId(trackIds[i] == null ? "" : trackIds[i])
+                .setUri(urls[i])
+                .setMediaMetadata(metadataBuilder.build())
+                .build());
         }
 
-        MediaItem mediaItem = new MediaItem.Builder()
-            .setMediaId(trackId == null ? "" : trackId)
-            .setUri(url)
-            .setMediaMetadata(metadataBuilder.build())
-            .build();
-
-        boolean sameTrack = player.getCurrentMediaItem() != null
-            && url.equals(String.valueOf(player.getCurrentMediaItem().localConfiguration != null
-                ? player.getCurrentMediaItem().localConfiguration.uri
-                : ""));
-
-        if (!sameTrack) {
-            player.setMediaItem(mediaItem);
-            player.prepare();
-        }
-
-        long positionMs = (long) Math.max(positionSeconds * 1000D, 0D);
-        if (positionMs > 0) {
-            player.seekTo(positionMs);
-        } else if (!sameTrack) {
-            player.seekTo(0);
-        }
-
+        player.setMediaItems(mediaItems, startIndex, (long) (positionSeconds * 1000L));
+        player.prepare();
+        
         if (autoplay) {
             player.play();
         } else {
             player.pause();
         }
 
-        emitPlaybackState("setTrack");
+        emitPlaybackState("setQueue");
+    }
+
+    private void handleAddTrack(Intent intent) {
+        if (player == null) return;
+        String url = intent.getStringExtra(EXTRA_URL);
+        if (url == null) return;
+
+        MediaMetadata metadata = new MediaMetadata.Builder()
+            .setTitle(intent.getStringExtra(EXTRA_TITLE))
+            .setArtist(intent.getStringExtra(EXTRA_ARTIST))
+            .setArtworkUri(Uri.parse(intent.getStringExtra(EXTRA_ARTWORK_URL)))
+            .build();
+
+        MediaItem item = new MediaItem.Builder()
+            .setMediaId(intent.getStringExtra(EXTRA_TRACK_ID))
+            .setUri(url)
+            .setMediaMetadata(metadata)
+            .build();
+
+        player.addMediaItem(item);
     }
 
     private PendingIntent buildSessionActivity() {

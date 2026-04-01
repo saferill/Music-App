@@ -93,6 +93,10 @@ interface PlayerState {
   playCounts: Record<string, number>;
   dominantColor: string | null;
   
+  repeatMode: 'none' | 'one' | 'all';
+  isShuffled: boolean;
+  shuffledQueue: Track[];
+  
   playTrack: (track: Track, queue?: Track[], context?: 'playlist' | 'similar') => void;
   playNext: () => Promise<void>;
   playPrev: () => void;
@@ -102,7 +106,10 @@ interface PlayerState {
   setProgress: (progress: number) => void;
   setDuration: (duration: number) => void;
   setVolume: (volume: number) => void;
+  toggleShuffle: () => void;
+  setRepeatMode: (mode: 'none' | 'one' | 'all') => void;
   addToQueue: (track: Track) => void;
+  addToNext: (track: Track) => void;
   setTrackToAdd: (track: Track | null) => void;
   setDominantColor: (color: string | null) => void;
 }
@@ -126,6 +133,42 @@ function sanitizeHistory(history?: HistoryItem[]) {
     }));
 }
 
+const syncNativeQueue = async (state: any) => {
+  const { queue, queueIndex, isShuffled, shuffledQueue, currentTrack, isPlaying } = state;
+  const activeQueue = isShuffled ? (shuffledQueue || []) : (queue || []);
+  const activeIndex = isShuffled 
+    ? (shuffledQueue || []).findIndex((t: any) => t.videoId === currentTrack?.videoId)
+    : queueIndex;
+
+  try {
+    const { nativeAudio, isAndroidNativeAudio } = await import('./native-audio');
+    if (!isAndroidNativeAudio()) return;
+
+    // Cap at 100 for IPC stability, centered around current index
+    const windowSize = 100;
+    const start = Math.max(0, activeIndex - 10); 
+    const end = Math.min(activeQueue.length, start + windowSize);
+    const queueWindow = activeQueue.slice(start, end);
+    const relativeIndex = activeIndex - start;
+
+    const tracks = queueWindow.map((t: any) => ({
+      trackId: t.videoId,
+      url: t.videoId === currentTrack?.videoId ? '' : '', // URLs handled via primeStream
+      title: t.name || t.title,
+      artist: typeof t.artist === 'string' ? t.artist : t.artist?.name || 'Unknown',
+      artworkUrl: (t.thumbnails && t.thumbnails.length > 0) ? t.thumbnails[t.thumbnails.length - 1].url : '',
+    }));
+
+    await nativeAudio.setQueue({
+      tracks,
+      startIndex: relativeIndex >= 0 ? relativeIndex : 0,
+      autoplay: isPlaying,
+    });
+  } catch (e) {
+    console.error('Failed to sync native queue', e);
+  }
+};
+
 export const usePlayerStore = create<PlayerState>()(
   persist(
     (set, get) => ({
@@ -142,15 +185,18 @@ export const usePlayerStore = create<PlayerState>()(
       history: [],
       playCounts: {},
       dominantColor: null,
+      repeatMode: 'none',
+      isShuffled: false,
+      shuffledQueue: [],
 
       playTrack: (rawTrack, rawQueue, context = 'similar') => {
         const track = sanitizeTrack(rawTrack);
-        const queue = sanitizeQueue(rawQueue);
-        const queueIndex = queue ? Math.max(0, queue.findIndex((t) => t.videoId === track.videoId)) : 0;
+        const queue = (rawQueue && rawQueue.length > 0) ? (sanitizeQueue(rawQueue) || [track]) : [track];
+        const queueIndex = queue.findIndex((t) => t.videoId === track.videoId);
+        const finalIndex = queueIndex >= 0 ? queueIndex : 0;
 
         const state = get();
         const newHistoryItem = { track, playedAt: Date.now() };
-        
         const filteredHistory = state.history.filter(h => h.track.videoId !== track.videoId);
         const newHistory = [newHistoryItem, ...filteredHistory].slice(0, 500);
         
@@ -160,24 +206,56 @@ export const usePlayerStore = create<PlayerState>()(
         set({
           currentTrack: track,
           isPlaying: true,
-          queue: queue || [track],
-          queueIndex,
+          queue,
+          queueIndex: finalIndex,
           progress: 0,
           playContext: context,
           history: newHistory,
           playCounts: newPlayCounts,
         });
 
+        if (!track) return;
         primeLyrics(track);
         primeStream(track);
-        primeQueueNeighbor(queue, queueIndex);
+        primeQueueNeighbor(queue || [], finalIndex);
+
+        // Sync to native queue immediately
+        syncNativeQueue(get());
+
+        // SimpMusic Concept: If playing a single track or at the end of a small queue,
+        // automatically populate the next 50 tracks from the 'next' API (Automix/Radio)
+        if (queue && queue.length <= 5 && context === 'similar' && track) {
+          const trackId = track.videoId;
+          fetch(`${getApiBaseUrl()}/api/next?id=${trackId}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.tracks && Array.isArray(data.tracks) && data.tracks.length > 0) {
+                const nextTracks = sanitizeQueue(data.tracks).filter(t => t.videoId !== track.videoId);
+                set(s => ({
+                  queue: [...s.queue, ...nextTracks]
+                }));
+              }
+            }).catch(console.error);
+        }
       },
 
       playNext: async () => {
-        const { queue, queueIndex, playContext, currentTrack } = get();
-        if (queueIndex < queue.length - 1) {
-          const nextIndex = queueIndex + 1;
-          const nextTrack = queue[nextIndex];
+        const { queue, queueIndex, playContext, currentTrack, repeatMode, isShuffled, shuffledQueue } = get();
+        
+        if (repeatMode === 'one' && currentTrack) {
+          set({ progress: 0, isPlaying: true });
+          return;
+        }
+
+        const activeQueue = isShuffled ? shuffledQueue : (queue || []);
+        const activeIndex = isShuffled 
+          ? (shuffledQueue || []).findIndex(t => t.videoId === currentTrack?.videoId)
+          : queueIndex;
+
+        if (activeIndex < activeQueue.length - 1) {
+          const nextIndex = activeIndex + 1;
+          const nextTrack = activeQueue[nextIndex];
+          if (!nextTrack) return;
           
           const state = get();
           const newHistoryItem = { track: nextTrack, playedAt: Date.now() };
@@ -189,7 +267,7 @@ export const usePlayerStore = create<PlayerState>()(
 
           set({
             currentTrack: nextTrack,
-            queueIndex: nextIndex,
+            queueIndex: isShuffled ? (queue || []).findIndex(t => t.videoId === nextTrack.videoId) : nextIndex,
             isPlaying: true,
             progress: 0,
             history: newHistory,
@@ -198,44 +276,59 @@ export const usePlayerStore = create<PlayerState>()(
 
           primeLyrics(nextTrack);
           primeStream(nextTrack);
-          primeQueueNeighbor(queue, nextIndex);
+          primeQueueNeighbor(activeQueue, nextIndex);
         } else {
-          if (playContext === 'similar' && currentTrack) {
-            set({ isPlaying: false });
+          if (repeatMode === 'all' && activeQueue.length > 0) {
+            const nextTrack = activeQueue[0];
+            if (nextTrack) {
+               set({
+                currentTrack: nextTrack,
+                queueIndex: isShuffled ? (queue || []).findIndex(t => t.videoId === nextTrack.videoId) : 0,
+                isPlaying: true,
+                progress: 0,
+              });
+              void syncNativeQueue(get());
+            }
+            return;
+          }
+
+          if (playContext === 'similar' && currentTrack?.videoId) {
+            const trackId = currentTrack.videoId;
+            // Don't stop playing while fetching to keep it smooth
             try {
-              const res = await fetch(`${getApiBaseUrl()}/api/next?id=${currentTrack.videoId}`);
+              const res = await fetch(`${getApiBaseUrl()}/api/next?id=${trackId}`);
               const data = await res.json();
               if (data.tracks && Array.isArray(data.tracks) && data.tracks.length > 0) {
-                const rawNextTracks = data.tracks.filter((t: any) => t.videoId && t.videoId !== currentTrack.videoId);
-                const nextTracks = sanitizeQueue(rawNextTracks);
+                const nextTracks = sanitizeQueue(data.tracks).filter((t) => t.videoId !== currentTrack.videoId);
 
-                if (nextTracks && nextTracks.length > 0) {
+                if (nextTracks.length > 0) {
                   const nextTrack = nextTracks[0];
                   
-                  const state = get();
+                  const activeState = get();
                   const newHistoryItem = { track: nextTrack, playedAt: Date.now() };
-                  const filteredHistory = state.history.filter(h => h.track.videoId !== nextTrack.videoId);
+                  const filteredHistory = activeState.history.filter(h => h.track.videoId !== nextTrack.videoId);
                   const newHistory = [newHistoryItem, ...filteredHistory].slice(0, 500);
                   
-                  const newPlayCounts = { ...state.playCounts };
+                  const newPlayCounts = { ...activeState.playCounts };
                   newPlayCounts[nextTrack.videoId] = (newPlayCounts[nextTrack.videoId] || 0) + 1;
 
                   set({
-                    queue: [...queue, ...nextTracks],
+                    queue: [...(queue || []), ...nextTracks],
                     currentTrack: nextTrack,
-                    queueIndex: queueIndex + 1,
+                    queueIndex: (queue || []).length, // It was at end, so new index is the old length
                     isPlaying: true,
                     progress: 0,
                     history: newHistory,
                     playCounts: newPlayCounts,
                   });
 
+                  if (isShuffled) {
+                    set(s => ({ shuffledQueue: [...(s.shuffledQueue || []), ...nextTracks] }));
+                  }
+
                   primeLyrics(nextTrack);
                   primeStream(nextTrack);
-                  if (nextTracks[1]) {
-                    primeLyrics(nextTracks[1]);
-                    primeStream(nextTracks[1]);
-                  }
+                  void syncNativeQueue(get());
                   return;
                 }
               }
@@ -248,14 +341,20 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       playPrev: () => {
-        const { queue, queueIndex, progress } = get();
-        if (progress > 3) {
+        const { queue, queueIndex, progress, isShuffled, shuffledQueue, currentTrack } = get();
+        if (progress > 5) {
           set({ progress: 0 });
           return;
         }
-        if (queueIndex > 0) {
-          const prevIndex = queueIndex - 1;
-          const prevTrack = queue[prevIndex];
+
+        const activeQueue = isShuffled ? shuffledQueue : (queue || []);
+        const activeIndex = isShuffled 
+          ? (shuffledQueue || []).findIndex(t => t.videoId === currentTrack?.videoId)
+          : queueIndex;
+
+        if (activeIndex > 0) {
+          const prevIndex = activeIndex - 1;
+          const prevTrack = activeQueue[prevIndex];
           
           const state = get();
           const newHistoryItem = { track: prevTrack, playedAt: Date.now() };
@@ -267,7 +366,7 @@ export const usePlayerStore = create<PlayerState>()(
 
           set({
             currentTrack: prevTrack,
-            queueIndex: prevIndex,
+            queueIndex: isShuffled ? (queue || []).findIndex(t => t.videoId === prevTrack.videoId) : prevIndex,
             isPlaying: true,
             progress: 0,
             history: newHistory,
@@ -276,8 +375,27 @@ export const usePlayerStore = create<PlayerState>()(
 
           primeLyrics(prevTrack);
           primeStream(prevTrack);
+        } else {
+          set({ progress: 0 });
         }
       },
+
+      toggleShuffle: () => {
+        set((state) => {
+          let newState;
+          if (state.isShuffled) {
+            newState = { isShuffled: false, shuffledQueue: [] };
+          } else {
+            const shuffled = [...(state.queue || [])].sort(() => Math.random() - 0.5);
+            newState = { isShuffled: true, shuffledQueue: shuffled };
+          }
+          const updatedState = { ...state, ...newState };
+          void syncNativeQueue(updatedState);
+          return newState;
+        });
+      },
+
+      setRepeatMode: (mode) => set({ repeatMode: mode }),
 
       togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
       setPlaying: (playing) => set({ isPlaying: playing }),
@@ -288,6 +406,14 @@ export const usePlayerStore = create<PlayerState>()(
       addToQueue: (rawTrack) => {
         const track = sanitizeTrack(rawTrack);
         set((state) => ({ queue: [...state.queue, track] }));
+      },
+      addToNext: (rawTrack) => {
+        const track = sanitizeTrack(rawTrack);
+        set((state) => {
+          const newQueue = [...state.queue];
+          newQueue.splice(state.queueIndex + 1, 0, track);
+          return { queue: newQueue };
+        });
       },
       setTrackToAdd: (rawTrack) => {
         const track = rawTrack ? sanitizeTrack(rawTrack) : null;

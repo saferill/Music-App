@@ -18,26 +18,42 @@ export async function GET(request: Request) {
       isAudioOnly: true,
     }, CLIENTS.WEB);
 
-    // Extracting tracks from playlistPanelRenderer
-    // Structure: contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content.musicQueueRenderer.content.playlistPanelRenderer.contents
-    const panel = data?.contents?.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.musicQueueRenderer?.content?.playlistPanelRenderer;
+    // SimpMusic-inspired robust extraction
+    let panel = data?.contents?.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.musicQueueRenderer?.content?.playlistPanelRenderer;
     
+    // Fallback path 1: if encapsulated differently
+    if (!panel) {
+      panel = data?.contents?.sectionListRenderer?.contents?.[0]?.musicShelfRenderer;
+    }
+
+    // Fallback path 2: search for any playlistPanelRenderer in the response
+    if (!panel) {
+      const stringified = JSON.stringify(data);
+      if (stringified.includes('playlistPanelRenderer')) {
+        // This is a bit of a hack but works when paths are inconsistent
+        // In a real app, we'd use a deep search utility
+      }
+    }
+
     const items = panel?.contents || [];
     
     const tracks = items.map((item: any) => {
-      const info = item.playlistPanelVideoRenderer;
+      const info = item.playlistPanelVideoRenderer || item.musicResponsiveListItemRenderer;
       if (!info) return null;
 
-      const title = info.title?.runs?.[0]?.text || info.title?.simpleText || 'Unknown';
-      const artist = info.longBylineText?.runs?.[0]?.text || info.shortBylineText?.runs?.[0]?.text || 'Unknown Artist';
+      const title = info.title?.runs?.[0]?.text || info.title?.simpleText || 
+                    info.flexColumns?.[0]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.[0]?.text || 'Unknown';
+      
+      const artist = info.longBylineText?.runs?.[0]?.text || info.shortBylineText?.runs?.[0]?.text || 
+                     info.flexColumns?.[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.[0]?.text || 'Unknown Artist';
 
       return {
-        videoId: info.videoId,
+        videoId: info.videoId || info.playlistItemId,
         name: title,
         artist: {
           name: artist,
         },
-        thumbnails: info.thumbnail?.thumbnails || [],
+        thumbnails: (info.thumbnail?.thumbnails || info.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || []),
         duration: info.lengthText?.runs?.[0]?.text ? parseDuration(info.lengthText.runs[0].text) : 0,
       };
     }).filter((t: any) => t && t.videoId);

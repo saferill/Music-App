@@ -20,32 +20,58 @@ public class NativeAudioPlugin extends Plugin {
     }
 
     @PluginMethod
-    public void setTrack(PluginCall call) {
-        String trackId = call.getString("trackId", "");
-        String url = call.getString("url", "");
-        String title = call.getString("title", "Sonara");
-        String artist = call.getString("artist", "");
-        String artworkUrl = call.getString("artworkUrl", null);
+    public void setQueue(PluginCall call) {
+        com.getcapacitor.JSArray tracks = call.getArray("tracks");
+        int startIndex = call.getInt("startIndex", 0);
         boolean autoplay = call.getBoolean("autoplay", true);
         double position = call.getDouble("position", 0D);
 
-        if (url == null || url.isEmpty()) {
-            call.reject("Track URL is required");
+        if (tracks == null || tracks.length() == 0) {
+            call.reject("Tracks array is required");
             return;
         }
 
-        Intent intent = NativePlaybackService.createSetTrackIntent(
-            getContext(),
-            trackId,
-            url,
-            title,
-            artist,
-            artworkUrl,
-            autoplay,
-            position
-        );
-        startPlaybackService(intent, autoplay);
-        call.resolve();
+        try {
+            int len = tracks.length();
+            String[] urls = new String[len];
+            String[] titles = new String[len];
+            String[] artists = new String[len];
+            String[] artworkUrls = new String[len];
+            String[] trackIds = new String[len];
+
+            for (int i = 0; i < len; i++) {
+                JSObject track = tracks.getObject(i);
+                urls[i] = track.getString("url", "");
+                titles[i] = track.getString("title", "Sonara");
+                artists[i] = track.getString("artist", "");
+                artworkUrls[i] = track.getString("artworkUrl", "");
+                trackIds[i] = track.getString("trackId", "");
+            }
+
+            Intent intent = NativePlaybackService.createActionIntent(getContext(), NativePlaybackService.ACTION_SET_QUEUE);
+            intent.putExtra("urls", urls);
+            intent.putExtra("titles", titles);
+            intent.putExtra("artists", artists);
+            intent.putExtra("artworkUrls", artworkUrls);
+            intent.putExtra("trackIds", trackIds);
+            intent.putExtra("startIndex", startIndex);
+            intent.putExtra("autoplay", autoplay);
+            intent.putExtra("position", position);
+
+            startPlaybackService(intent, autoplay);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void setTrack(PluginCall call) {
+        // Reuse setQueue logic for a single track to keep it robust
+        com.getcapacitor.JSArray tracks = new com.getcapacitor.JSArray();
+        tracks.put(call.getData());
+        call.getData().put("tracks", tracks);
+        setQueue(call);
     }
 
     @PluginMethod
@@ -70,6 +96,24 @@ public class NativeAudioPlugin extends Plugin {
     @PluginMethod
     public void stop(PluginCall call) {
         getContext().startService(NativePlaybackService.createActionIntent(getContext(), NativePlaybackService.ACTION_STOP));
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void setShuffle(PluginCall call) {
+        boolean shuffle = call.getBoolean("shuffle", false);
+        Intent intent = NativePlaybackService.createActionIntent(getContext(), NativePlaybackService.ACTION_SET_SHUFFLE);
+        intent.putExtra("shuffle", shuffle);
+        getContext().startService(intent);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void removeTrack(PluginCall call) {
+        int index = call.getInt("index", -1);
+        Intent intent = NativePlaybackService.createActionIntent(getContext(), NativePlaybackService.ACTION_REMOVE_TRACK);
+        intent.putExtra("position", index); // Reusing EXTRA_POSITION
+        getContext().startService(intent);
         call.resolve();
     }
 

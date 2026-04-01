@@ -54,6 +54,10 @@ export function Player() {
   const setDuration = usePlayerStore((state) => state.setDuration);
   const playNext = usePlayerStore((state) => state.playNext);
   const playPrev = usePlayerStore((state) => state.playPrev);
+  const toggleShuffle = usePlayerStore((state) => state.toggleShuffle);
+  const setRepeatMode = usePlayerStore((state) => state.setRepeatMode);
+  const isShuffled = usePlayerStore((state) => state.isShuffled);
+  const repeatMode = usePlayerStore((state) => state.repeatMode);
   const setTrackToAdd = usePlayerStore((state) => state.setTrackToAdd);
   const dominantColor = usePlayerStore((state) => state.dominantColor);
 
@@ -229,6 +233,23 @@ export function Player() {
 
       if (typeof event.isPlaying === 'boolean') {
         setPlaying(event.isPlaying);
+      }
+
+      if (event.trackId && event.trackId !== currentTrack?.videoId) {
+        // Native player transitioned to a new track automatically (e.g. background)
+        const state = usePlayerStore.getState();
+        const activeQueue = state.isShuffled ? state.shuffledQueue : state.queue;
+        const newTrack = activeQueue?.find((t: any) => t.videoId === event.trackId);
+        
+        if (newTrack) {
+          usePlayerStore.setState({ 
+            currentTrack: newTrack,
+            queueIndex: activeQueue?.findIndex((t: any) => t.videoId === event.trackId) ?? 0,
+            progress: event.position || 0,
+            duration: event.duration || 0,
+            isPlaying: event.isPlaying
+          });
+        }
       }
 
       if (event.ended && currentTrack?.videoId && event.trackId === currentTrack.videoId) {
@@ -408,7 +429,7 @@ export function Player() {
         // when the WebView or iframe pauses playback in background.
         setPlaying(false);
       } else if (event.data === YouTube.PlayerState.ENDED) {
-        playNext();
+        void playNext();
       }
     },
     [setPlaying, setDuration, playNext]
@@ -428,7 +449,7 @@ export function Player() {
 
             // Robust background ending check
             if (time > 0 && duration > 0 && time >= duration - 1 && playerState !== YouTube.PlayerState.PLAYING) {
-              playNext();
+              void playNext();
             }
 
             // Check SponsorBlock
@@ -491,8 +512,7 @@ export function Player() {
     };
 
     const handleEnded = () => {
-      setProgress(0);
-      playNext();
+      void playNext();
     };
 
     const handleError = () => {
@@ -685,7 +705,7 @@ export function Player() {
       playPrev();
     });
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-      playNext();
+      void playNext();
     });
     navigator.mediaSession.setActionHandler('seekto', (details) => {
       if (details.seekTime === undefined) return;
@@ -1119,7 +1139,10 @@ export function Player() {
                 </div>
 
                 <div className="mb-6 flex items-center justify-between px-1 sm:mb-8 sm:px-2">
-                  <button className="text-white/80 transition hover:text-white">
+                  <button 
+                    onClick={() => toggleShuffle()} 
+                    className={cn("transition hover:text-white", isShuffled ? "text-[var(--accent)]" : "text-white/80")}
+                  >
                     <Shuffle className="h-5 w-5 sm:h-6 sm:w-6" />
                   </button>
                   <button onClick={playPrev} className="text-white transition hover:text-white">
@@ -1138,8 +1161,20 @@ export function Player() {
                   <button onClick={playNext} className="text-white transition hover:text-white">
                     <SkipForward className="h-8 w-8 fill-current sm:h-10 sm:w-10" />
                   </button>
-                  <button className="text-white/80 transition hover:text-white">
+                  <button 
+                    onClick={() => {
+                      const modes: ('none' | 'one' | 'all')[] = ['none', 'all', 'one'];
+                      const nextMode = modes[(modes.indexOf(repeatMode) + 1) % modes.length];
+                      setRepeatMode(nextMode);
+                    }} 
+                    className={cn("transition hover:text-white relative", repeatMode !== 'none' ? "text-[var(--accent)]" : "text-white/80")}
+                  >
                     <Repeat className="h-5 w-5 sm:h-6 sm:w-6" />
+                    {repeatMode === 'one' && (
+                      <span className="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--accent)] text-[8px] font-bold text-black">
+                        1
+                      </span>
+                    )}
                   </button>
                 </div>
 

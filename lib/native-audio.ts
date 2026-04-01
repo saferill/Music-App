@@ -21,11 +21,19 @@ type NativeTrackOptions = {
 
 interface NativeAudioPlugin {
   setTrack(options: NativeTrackOptions): Promise<void>;
+  setQueue(options: {
+    tracks: NativeTrackOptions[];
+    startIndex?: number;
+    autoplay?: boolean;
+    position?: number;
+  }): Promise<void>;
   play(): Promise<void>;
   pause(): Promise<void>;
   seekTo(options: { position: number }): Promise<void>;
   stop(): Promise<void>;
   getState(): Promise<NativePlaybackState>;
+  setShuffle(options: { shuffle: boolean }): Promise<void>;
+  removeTrack(options: { index: number }): Promise<void>;
   addListener(
     eventName: 'playbackState',
     listenerFunc: (event: NativePlaybackState) => void
@@ -40,6 +48,15 @@ export const nativeAudio = {
   async setTrack(options: NativeTrackOptions) {
     if (!isAndroidNativeAudio()) return;
     await nativeAudioPlugin.setTrack(options);
+  },
+  async setQueue(options: {
+    tracks: NativeTrackOptions[];
+    startIndex?: number;
+    autoplay?: boolean;
+    position?: number;
+  }) {
+    if (!isAndroidNativeAudio()) return;
+    await nativeAudioPlugin.setQueue(options);
   },
   async play() {
     if (!isAndroidNativeAudio()) return;
@@ -60,6 +77,14 @@ export const nativeAudio = {
   async getState() {
     if (!isAndroidNativeAudio()) return {};
     return nativeAudioPlugin.getState();
+  },
+  async setShuffle(shuffle: boolean) {
+    if (!isAndroidNativeAudio()) return;
+    await nativeAudioPlugin.setShuffle({ shuffle });
+  },
+  async removeTrack(index: number) {
+    if (!isAndroidNativeAudio()) return;
+    await nativeAudioPlugin.removeTrack({ index });
   },
   addListener(listener: (event: NativePlaybackState) => void) {
     if (!isAndroidNativeAudio()) {
