@@ -473,12 +473,12 @@ fun InfoPlayerBottomSheet(
                             Text(
                                 text = stringResource(Res.string.now_playing_upper),
                                 style = typo().bodyMedium,
-                                color = Color.White,
+                                color = Color(0xFFE6E3E3),
                             )
                             Text(
                                 text = screenDataState.nowPlayingTitle,
                                 style = typo().labelMedium,
-                                color = Color.White,
+                                color = Color(0xFFE6E3E3),
                                 textAlign = TextAlign.Center,
                                 maxLines = 1,
                                 modifier =
@@ -502,7 +502,7 @@ fun InfoPlayerBottomSheet(
                             Icon(
                                 painter = painterResource(Res.drawable.baseline_keyboard_arrow_down_24),
                                 contentDescription = "",
-                                tint = Color.White,
+                                tint = Color(0xFFE6E3E3),
                             )
                         }
                     },
@@ -1028,12 +1028,12 @@ fun QueueBottomSheet(
                             Text(
                                 text = stringResource(Res.string.now_playing_upper),
                                 style = typo().bodyMedium,
-                                color = Color.White,
+                                color = Color(0xFFE6E3E3),
                             )
                             Text(
                                 text = screenDataState.playlistName,
                                 style = typo().labelMedium,
-                                color = Color.White,
+                                color = Color(0xFFE6E3E3),
                                 textAlign = TextAlign.Center,
                                 maxLines = 1,
                                 modifier =
@@ -1057,7 +1057,7 @@ fun QueueBottomSheet(
                             Icon(
                                 painter = painterResource(Res.drawable.baseline_keyboard_arrow_down_24),
                                 contentDescription = "",
-                                tint = Color.White,
+                                tint = Color(0xFFE6E3E3),
                             )
                         }
                     },
@@ -1891,7 +1891,7 @@ fun ActionButton(
     text: StringResource?,
     textString: String? = null,
     textColor: Color? = null,
-    iconColor: Color = Color.White,
+    iconColor: Color = Color(0xFFE6E3E3),
     enable: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -2015,7 +2015,7 @@ fun HeartCheckBox(
                     painter = painterResource(Res.drawable.baseline_favorite_border_24),
                     contentDescription = "Favorite unchecked",
                     modifier = Modifier.fillMaxSize().padding(4.dp),
-                    colorFilter = ColorFilter.tint(Color.White),
+                    colorFilter = ColorFilter.tint(Color(0xFFE6E3E3)),
                 )
             }
         }
@@ -2247,7 +2247,7 @@ fun SleepTimerBottomSheet(
                     Text(
                         text = stringResource(Res.string.sleep_timer_off),
                         style = typo().titleMedium,
-                        color = Color.White,
+                        color = Color(0xFFE6E3E3),
                     )
                 }
 
@@ -2443,7 +2443,7 @@ fun SleepTimerBottomSheet(
                     Text(
                         text = stringResource(Res.string.set),
                         style = typo().labelSmall,
-                        color = Color.White,
+                        color = Color(0xFFE6E3E3),
                         modifier = Modifier.padding(vertical = 4.dp),
                     )
                 }
@@ -2570,7 +2570,7 @@ fun AddToPlaylistModalBottomSheet(
                                                 Text(
                                                     text = playlist.title,
                                                     style = typo().labelSmall,
-                                                    color = Color.White,
+                                                    color = Color(0xFFE6E3E3),
                                                 )
                                             }
                                         }
@@ -2610,7 +2610,7 @@ fun AddToPlaylistModalBottomSheet(
                                                 Text(
                                                     text = playlist.title,
                                                     style = typo().labelSmall,
-                                                    color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
+                                                    color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color(0xFFE6E3E3),
                                                 )
                                             }
                                         }
@@ -3088,7 +3088,7 @@ fun SortPlaylistBottomSheet(
                                 text = stringResource(filterOption.displayNameRes()),
                                 style = typo().labelMedium,
                                 fontWeight = FontWeight.Medium,
-                                color = if (isSelected) seed else Color.White,
+                                color = if (isSelected) seed else Color(0xFFE6E3E3),
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             if (isSelected) {

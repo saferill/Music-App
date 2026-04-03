@@ -65,6 +65,7 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.Orientation
 import com.maxrave.simpmusic.expect.currentOrientation
 import com.maxrave.simpmusic.expect.openUrl
+import com.maxrave.simpmusic.expect.startInAppUpdate
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
@@ -81,7 +82,7 @@ import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
-import com.maxrave.simpmusic.ui.theme.fontFamily
+import com.maxrave.simpmusic.ui.theme.fontFamilyBody
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -578,7 +579,11 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                 onClick = {
                                     shouldShowUpdateDialog = false
                                     viewModel.showedUpdateDialog = false
-                                    openUrl(response.downloadUrl ?: Config.SONARA_ANDROID_DOWNLOAD_URL)
+                                    val updateUrl = response.downloadUrl ?: Config.SONARA_ANDROID_DOWNLOAD_URL
+                                    val started = startInAppUpdate(updateUrl, "Sonara Music.apk")
+                                    if (!started) {
+                                        openUrl(updateUrl)
+                                    }
                                 },
                             ) {
                                 Text(
@@ -671,7 +676,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                     SpanStyle(
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.Normal,
-                                                        fontFamily = fontFamily(),
+                                                        fontFamily = fontFamilyBody(),
                                                         textDecoration = TextDecoration.Underline,
                                                     ),
                                                 ),

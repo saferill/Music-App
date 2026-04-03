@@ -141,6 +141,22 @@ android {
     }
 }
 
+tasks.register("renameReleaseApk") {
+    dependsOn("assembleRelease")
+    doLast {
+        val outDir = file("$buildDir/outputs/apk/release")
+        if (!outDir.exists()) return@doLast
+        val candidates = outDir.listFiles()?.filter { it.extension == "apk" } ?: emptyList()
+        val preferred =
+            candidates.firstOrNull { it.name.contains("universal", ignoreCase = true) }
+                ?: candidates.firstOrNull()
+        if (preferred != null) {
+            val target = File(outDir, "Sonara Music.apk")
+            preferred.copyTo(target, overwrite = true)
+        }
+    }
+}
+
 dependencies {
     coreLibraryDesugaring(libs.desugaring)
     val debugImplementation = "debugImplementation"

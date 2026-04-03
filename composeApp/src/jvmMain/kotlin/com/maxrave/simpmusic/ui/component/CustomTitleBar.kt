@@ -163,7 +163,7 @@ fun CustomTitleBar(
             Text(
                 text = title,
                 style = typo().labelSmall,
-                color = Color.White,
+                color = Color(0xFFE6E3E3),
             )
             Spacer(modifier = Modifier.weight(1f))
         }

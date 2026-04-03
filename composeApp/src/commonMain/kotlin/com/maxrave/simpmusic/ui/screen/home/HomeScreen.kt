@@ -118,6 +118,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -762,8 +763,8 @@ fun HomeTopAppBar(navController: NavController) {
             Column {
                 Text(
                     text = stringResource(Res.string.app_name),
-                    style = typo().titleMedium,
-                    color = Color.White,
+                    style = typo().titleLarge,
+                    color = Color(0xFFE6E3E3),
                     modifier = Modifier.padding(bottom = 4.dp),
                 )
                 Text(
@@ -785,18 +786,19 @@ fun HomeTopAppBar(navController: NavController) {
                                 stringResource(Res.string.good_night)
                             }
                         },
-                    style = typo().bodySmall,
+                    style = typo().labelSmall,
+                    color = md_theme_dark_onSurfaceVariant,
                 )
             }
         },
         actions = {
-            RippleIconButton(resId = Res.drawable.outline_notifications_24) {
+            RippleIconButton(resId = Res.drawable.outline_notifications_24, tint = md_theme_dark_onSurfaceVariant) {
                 navController.navigate(NotificationDestination)
             }
-            RippleIconButton(resId = Res.drawable.baseline_history_24) {
+            RippleIconButton(resId = Res.drawable.baseline_history_24, tint = md_theme_dark_onSurfaceVariant) {
                 navController.navigate(RecentlySongsDestination)
             }
-            RippleIconButton(resId = Res.drawable.baseline_settings_24) {
+            RippleIconButton(resId = Res.drawable.baseline_settings_24, tint = md_theme_dark_onSurfaceVariant) {
                 navController.navigate(SettingsDestination)
             }
         },
@@ -816,7 +818,7 @@ fun AccountLayout(
         Text(
             text = stringResource(Res.string.welcome_back),
             style = typo().bodyMedium,
-            color = Color.White,
+            color = md_theme_dark_onSurfaceVariant,
             modifier = Modifier.padding(bottom = 3.dp),
         )
         Row(
@@ -846,7 +848,7 @@ fun AccountLayout(
             Text(
                 text = accountName,
                 style = typo().headlineMedium,
-                color = Color.White,
+                color = Color(0xFFE6E3E3),
                 modifier =
                     Modifier
                         .padding(start = 8.dp),
@@ -883,7 +885,7 @@ fun QuickPicks(
         Text(
             text = stringResource(Res.string.quick_picks),
             style = typo().headlineMedium,
-            color = Color.White,
+            color = Color(0xFFE6E3E3),
             maxLines = 1,
             modifier =
                 Modifier

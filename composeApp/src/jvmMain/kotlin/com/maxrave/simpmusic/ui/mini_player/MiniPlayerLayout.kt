@@ -128,7 +128,7 @@ private fun MiniPlayerSeekBar(
                 .height(trackHeight)
                 .align(Alignment.Center)
                 .background(
-                    Color.White.copy(alpha = 0.25f),
+                    Color(0xFFE6E3E3).copy(alpha = 0.25f),
                     RoundedCornerShape(50),
                 ),
         )
@@ -140,7 +140,7 @@ private fun MiniPlayerSeekBar(
                 .height(trackHeight)
                 .align(Alignment.CenterStart)
                 .background(
-                    Color.White,
+                    Color(0xFFE6E3E3),
                     RoundedCornerShape(50),
                 ),
         )
@@ -151,7 +151,7 @@ private fun MiniPlayerSeekBar(
                 .offset(x = (maxWidth * progress) - (thumbSize / 2))
                 .size(thumbSize)
                 .align(Alignment.CenterStart)
-                .background(Color.White, CircleShape),
+                .background(Color(0xFFE6E3E3), CircleShape),
         )
     }
 }
@@ -198,7 +198,7 @@ fun CompactMiniLayout(
                     RippleIconButton(
                         resId = Res.drawable.baseline_skip_previous_24,
                         modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                        tint = if (controllerState.isPreviousAvailable) Color(0xFFE6E3E3) else Color.Gray,
                         onClick = {
                             if (controllerState.isPreviousAvailable) {
                                 onUIEvent(UIEvent.Previous)
@@ -215,7 +215,7 @@ fun CompactMiniLayout(
                     RippleIconButton(
                         resId = Res.drawable.baseline_skip_next_24,
                         modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                        tint = if (controllerState.isNextAvailable) Color(0xFFE6E3E3) else Color.Gray,
                         onClick = {
                             if (controllerState.isNextAvailable) {
                                 onUIEvent(UIEvent.Next)
@@ -321,7 +321,7 @@ fun MediumMiniLayout(
                                         if (controllerState.isLiked) {
                                             Color(0xFFFF4081)
                                         } else {
-                                            Color.White.copy(alpha = 0.7f)
+                                            Color(0xFFE6E3E3).copy(alpha = 0.7f)
                                         },
                                     modifier = Modifier.size(18.dp),
                                 )
@@ -331,7 +331,7 @@ fun MediumMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_previous_24,
                             modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isPreviousAvailable) Color(0xFFE6E3E3) else Color.Gray,
                             onClick = {
                                 if (controllerState.isPreviousAvailable) {
                                     onUIEvent(UIEvent.Previous)
@@ -348,7 +348,7 @@ fun MediumMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_next_24,
                             modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isNextAvailable) Color(0xFFE6E3E3) else Color.Gray,
                             onClick = {
                                 if (controllerState.isNextAvailable) {
                                     onUIEvent(UIEvent.Next)
@@ -378,7 +378,7 @@ fun MediumMiniLayout(
                                             Icons.AutoMirrored.Filled.VolumeOff
                                         },
                                     contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                                    tint = Color.White.copy(alpha = 0.7f),
+                                    tint = Color(0xFFE6E3E3).copy(alpha = 0.7f),
                                     modifier = Modifier.size(18.dp),
                                 )
                             }
@@ -434,7 +434,7 @@ fun MediumMiniLayout(
                                     textAlign = TextAlign.Center,
                                     text = currentLine.words,
                                     style = typo().bodySmall,
-                                    color = Color.White.copy(alpha = 0.9f),
+                                    color = Color(0xFFE6E3E3).copy(alpha = 0.9f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = 11.sp,
@@ -521,7 +521,7 @@ fun SquareMiniLayout(
                 Text(
                     text = nowPlayingData.nowPlayingTitle,
                     style = typo().bodyLarge,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 16.sp,
@@ -581,7 +581,7 @@ fun SquareMiniLayout(
                             textAlign = TextAlign.Center,
                             text = currentLine.words,
                             style = typo().bodySmall,
-                            color = Color.White.copy(alpha = 0.9f),
+                            color = Color(0xFFE6E3E3).copy(alpha = 0.9f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             fontSize = 12.sp,
@@ -625,7 +625,7 @@ fun SquareMiniLayout(
                             if (controllerState.isLiked) {
                                 Color(0xFFFF4081)
                             } else {
-                                Color.White.copy(alpha = 0.7f)
+                                Color(0xFFE6E3E3).copy(alpha = 0.7f)
                             },
                         modifier = Modifier.size(24.dp),
                     )
@@ -635,7 +635,7 @@ fun SquareMiniLayout(
                 RippleIconButton(
                     resId = Res.drawable.baseline_skip_previous_24,
                     modifier = Modifier.size(36.dp),
-                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                    tint = if (controllerState.isPreviousAvailable) Color(0xFFE6E3E3) else Color.Gray,
                     onClick = {
                         if (controllerState.isPreviousAvailable) {
                             onUIEvent(UIEvent.Previous)
@@ -654,7 +654,7 @@ fun SquareMiniLayout(
                 RippleIconButton(
                     resId = Res.drawable.baseline_skip_next_24,
                     modifier = Modifier.size(36.dp),
-                    tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                    tint = if (controllerState.isNextAvailable) Color(0xFFE6E3E3) else Color.Gray,
                     onClick = {
                         if (controllerState.isNextAvailable) {
                             onUIEvent(UIEvent.Next)
@@ -679,7 +679,7 @@ fun SquareMiniLayout(
                                 Icons.AutoMirrored.Filled.VolumeOff
                             },
                         contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                        tint = Color.White.copy(alpha = 0.7f),
+                        tint = Color(0xFFE6E3E3).copy(alpha = 0.7f),
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -706,13 +706,13 @@ fun EmptyMiniPlayerState() {
             Text(
                 text = "No track playing",
                 style = typo().bodyMedium.copy(fontSize = 13.sp),
-                color = Color.White.copy(alpha = 0.6f),
+                color = Color(0xFFE6E3E3).copy(alpha = 0.6f),
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Play something to see controls",
                 style = typo().bodySmall.copy(fontSize = 11.sp),
-                color = Color.White.copy(alpha = 0.4f),
+                color = Color(0xFFE6E3E3).copy(alpha = 0.4f),
             )
         }
     }
@@ -780,7 +780,7 @@ fun ExpandedMiniLayout(
                     Text(
                         text = nowPlayingData.nowPlayingTitle,
                         style = typo().bodyMedium,
-                        color = Color.White,
+                        color = Color(0xFFE6E3E3),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 14.sp,
@@ -823,7 +823,7 @@ fun ExpandedMiniLayout(
                                     if (controllerState.isLiked) {
                                         Color(0xFFFF4081)
                                     } else {
-                                        Color.White.copy(alpha = 0.7f)
+                                        Color(0xFFE6E3E3).copy(alpha = 0.7f)
                                     },
                                 modifier = Modifier.size(20.dp),
                             )
@@ -832,7 +832,7 @@ fun ExpandedMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_previous_24,
                             modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isPreviousAvailable) Color(0xFFE6E3E3) else Color.Gray,
                             onClick = {
                                 if (controllerState.isPreviousAvailable) {
                                     onUIEvent(UIEvent.Previous)
@@ -851,7 +851,7 @@ fun ExpandedMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_next_24,
                             modifier = Modifier.size(32.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isNextAvailable) Color(0xFFE6E3E3) else Color.Gray,
                             onClick = {
                                 if (controllerState.isNextAvailable) {
                                     onUIEvent(UIEvent.Next)
@@ -876,7 +876,7 @@ fun ExpandedMiniLayout(
                                         Icons.AutoMirrored.Filled.VolumeOff
                                     },
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                                tint = Color.White.copy(alpha = 0.7f),
+                                tint = Color(0xFFE6E3E3).copy(alpha = 0.7f),
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -933,7 +933,7 @@ fun ExpandedMiniLayout(
                                 textAlign = TextAlign.Center,
                                 text = currentLine.words,
                                 style = typo().bodySmall,
-                                color = Color.White.copy(alpha = 0.9f),
+                                color = Color(0xFFE6E3E3).copy(alpha = 0.9f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 fontSize = 11.sp,

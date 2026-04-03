@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -26,6 +28,11 @@ import androidx.navigation.NavController
 import com.maxrave.simpmusic.extension.NonLazyGrid
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_secondary
+import com.maxrave.simpmusic.ui.theme.sonara_pulse
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -108,8 +115,8 @@ fun LibraryTilingItem(
             Modifier.fillMaxWidth().clickable {
                 onClick.invoke()
             },
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.elevatedCardElevation(),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         colors =
             CardDefaults.elevatedCardColors().copy(
                 containerColor = state.containerColor,
@@ -119,19 +126,27 @@ fun LibraryTilingItem(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                state.icon,
-                contentDescription = title,
+            Box(
                 modifier =
                     Modifier
-                        .size(50.dp)
-                        .padding(10.dp),
-                tint = state.iconColor,
-            )
+                        .padding(10.dp)
+                        .size(44.dp)
+                        .background(
+                            Brush.linearGradient(listOf(state.iconColor, state.iconColor.copy(alpha = 0.35f))),
+                            shape = RoundedCornerShape(14.dp),
+                        ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    state.icon,
+                    contentDescription = title,
+                    tint = Color.Black,
+                )
+            }
             Text(
                 title,
-                style = typo().titleSmall,
-                color = Color.Black,
+                style = typo().titleMedium,
+                color = md_theme_dark_onSurfaceVariant,
             )
         }
     }
@@ -147,30 +162,30 @@ data class LibraryTilingState(
         val Favorite =
             LibraryTilingState(
                 title = Res.string.favorite,
-                containerColor = Color(0xffff99ae),
+                containerColor = sonara_surface_container_high,
                 icon = Icons.Default.Favorite,
-                iconColor = Color(0xffD10000),
+                iconColor = md_theme_dark_secondary,
             )
         val Followed =
             LibraryTilingState(
                 title = Res.string.followed,
-                containerColor = Color(0xffFFEB3B),
+                containerColor = sonara_surface_container_high,
                 icon = Icons.Default.Insights,
-                iconColor = Color.Black,
+                iconColor = md_theme_dark_primary,
             )
         val MostPlayed =
             LibraryTilingState(
                 title = Res.string.most_played,
-                containerColor = Color(0xff00BCD4),
+                containerColor = sonara_surface_container_high,
                 icon = Icons.AutoMirrored.Filled.TrendingUp,
-                iconColor = Color.Black,
+                iconColor = sonara_pulse,
             )
         val Downloaded =
             LibraryTilingState(
                 title = Res.string.downloaded,
-                containerColor = Color(0xff4CAF50),
+                containerColor = sonara_surface_container_high,
                 icon = Icons.Default.Downloading,
-                iconColor = Color.Black,
+                iconColor = md_theme_dark_primary,
             )
     }
 }

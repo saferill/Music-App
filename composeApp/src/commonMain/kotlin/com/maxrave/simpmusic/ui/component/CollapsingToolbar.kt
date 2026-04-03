@@ -199,7 +199,7 @@ fun CollapsingToolbarParallaxEffect(
                                     alpha = 0.8f,
                                 ),
                             contentColor =
-                                Color.White.copy(
+                                Color(0xFFE6E3E3).copy(
                                     alpha = 0.6f,
                                 ),
                         ),
@@ -361,7 +361,7 @@ private fun Toolbar(
                     Icon(
                         imageVector = Icons.Default.ArrowBackIosNew,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = Color(0xFFE6E3E3),
                     )
                 }
             },
@@ -391,7 +391,7 @@ private fun Title(
         text = title,
         fontSize = 30.sp, // Reduced from 48.sp — still bold and prominent, fits longer names
         fontWeight = FontWeight.Bold,
-        color = Color.White,
+        color = Color(0xFFE6E3E3),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier =

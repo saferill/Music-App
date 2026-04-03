@@ -1,8 +1,9 @@
 package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ElevatedFilterChip
@@ -17,6 +18,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_secondary
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
 
 @Composable
 fun Chip(
@@ -25,25 +30,26 @@ fun Chip(
     text: String,
     onClick: () -> Unit,
 ) {
+    val shape = RoundedCornerShape(20.dp)
     InfiniteBorderAnimationView(
         isAnimated = isAnimated && isSelected,
-        brush = Brush.sweepGradient(listOf(Color.Gray, Color.White)),
+        brush = Brush.sweepGradient(listOf(md_theme_dark_primary, md_theme_dark_secondary, md_theme_dark_primary)),
         backgroundColor = Color.Transparent,
         contentPadding = 0.dp,
-        borderWidth = 1.dp,
-        shape = CircleShape,
+        borderWidth = if (isSelected) 1.5.dp else 1.dp,
+        shape = shape,
         oneCircleDurationMillis = 2500,
     ) {
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
             ElevatedFilterChip(
-                shape = CircleShape,
+                shape = shape,
                 colors =
                     FilterChipDefaults.elevatedFilterChipColors(
-                        containerColor = Color.Transparent,
-                        iconColor = Color.White,
-                        selectedContainerColor = Color.DarkGray.copy(alpha = 0.8f),
-                        labelColor = Color.LightGray,
-                        selectedLabelColor = Color.LightGray,
+                        containerColor = sonara_surface_container_high,
+                        iconColor = md_theme_dark_primary,
+                        selectedContainerColor = md_theme_dark_primary.copy(alpha = 0.18f),
+                        labelColor = md_theme_dark_onSurfaceVariant,
+                        selectedLabelColor = md_theme_dark_primary,
                     ),
                 onClick = { onClick.invoke() },
                 label = {
@@ -53,8 +59,8 @@ fun Chip(
                     FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isSelected,
-                        selectedBorderColor = Color.Transparent,
-                        borderColor = Color.Gray.copy(alpha = 0.8f),
+                        selectedBorderColor = md_theme_dark_primary.copy(alpha = 0.6f),
+                        borderColor = md_theme_dark_onSurfaceVariant.copy(alpha = 0.35f),
                     ),
                 selected = isSelected,
                 leadingIcon = {
@@ -68,6 +74,11 @@ fun Chip(
                         }
                     }
                 },
+                modifier =
+                    Modifier.background(
+                        color = if (isSelected) md_theme_dark_primary.copy(alpha = 0.08f) else Color.Transparent,
+                        shape = shape,
+                    ),
             )
         }
     }

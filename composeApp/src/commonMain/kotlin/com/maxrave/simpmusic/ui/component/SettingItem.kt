@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,14 +11,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.extension.greyScale
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 
@@ -51,15 +56,20 @@ fun SettingItem(
                 } else {
                     Modifier
                 },
-            ),
+            )
+            .background(
+                color = sonara_surface_container_high,
+                shape = RoundedCornerShape(18.dp),
+            )
+            .padding(vertical = 4.dp),
     ) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(
-                        vertical = 8.dp,
-                        horizontal = 24.dp,
+                        vertical = 12.dp,
+                        horizontal = 20.dp,
                     ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -89,6 +99,7 @@ fun SettingItem(
                             }
                         },
                     maxLines = 2,
+                    color = md_theme_dark_onSurfaceVariant,
                 )
 
                 otherView?.let {

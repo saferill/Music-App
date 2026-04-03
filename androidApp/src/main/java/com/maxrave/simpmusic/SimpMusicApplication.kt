@@ -20,6 +20,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.service.backup.AutoBackupScheduler
+import com.maxrave.simpmusic.update.InAppUpdateManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -94,6 +95,8 @@ class SimpMusicApplication :
         AppContext.apply {
             set(applicationContext)
         }
+
+        InAppUpdateManager.register(this)
     }
 
     override fun onTerminate() {

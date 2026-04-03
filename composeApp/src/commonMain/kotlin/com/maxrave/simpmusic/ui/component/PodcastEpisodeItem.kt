@@ -80,7 +80,7 @@ fun PodcastEpisodeFullWidthItem(
                     text = episode.title,
                     style = typo().labelMedium,
                     maxLines = 1,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -95,7 +95,7 @@ fun PodcastEpisodeFullWidthItem(
                     text = "${episode.createdDay ?: ""}${if (!episode.durationString.isNullOrEmpty()) " • ${episode.durationString}" else ""}",
                     style = typo().bodyMedium,
                     maxLines = 1,
-                    color = Color(0xC4FFFFFF),
+                    color = Color(0xC4E6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -112,7 +112,7 @@ fun PodcastEpisodeFullWidthItem(
                         text = description,
                         style = typo().bodyMedium,
                         maxLines = 1,
-                        color = Color(0xC4FFFFFF),
+                        color = Color(0xC4E6E3E3),
                         modifier =
                             Modifier
                                 .fillMaxWidth()

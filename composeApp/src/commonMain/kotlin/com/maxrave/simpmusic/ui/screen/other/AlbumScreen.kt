@@ -288,7 +288,7 @@ fun AlbumScreen(
                                             Text(
                                                 text = uiState.title,
                                                 style = typo().titleLarge,
-                                                color = Color.White,
+                                                color = Color(0xFFE6E3E3),
                                                 maxLines = 2,
                                             )
                                             Column(
@@ -298,7 +298,7 @@ fun AlbumScreen(
                                                 Text(
                                                     text = uiState.artist.name,
                                                     style = typo().titleSmall,
-                                                    color = Color.White,
+                                                    color = Color(0xFFE6E3E3),
                                                     modifier =
                                                         Modifier.clickable {
                                                             uiState.artist.id?.let { channelId ->
@@ -319,7 +319,7 @@ fun AlbumScreen(
                                                             stringResource(Res.string.album),
                                                         ),
                                                     style = typo().bodyMedium,
-                                                    color = Color(0xC4FFFFFF),
+                                                    color = Color(0xC4E6E3E3),
                                                 )
                                             }
                                             Row(
@@ -460,7 +460,7 @@ fun AlbumScreen(
                                                         (uiState.trackCount).toString(),
                                                         uiState.length,
                                                     ),
-                                                color = Color.White,
+                                                color = Color(0xFFE6E3E3),
                                                 style = typo().bodyMedium,
                                                 modifier = Modifier.padding(vertical = 8.dp),
                                             )

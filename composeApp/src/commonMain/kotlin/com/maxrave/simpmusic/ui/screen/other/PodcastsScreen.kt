@@ -261,7 +261,7 @@ fun PodcastScreen(
                                             Text(
                                                 text = data.title,
                                                 style = typo().titleLarge,
-                                                color = Color.White,
+                                                color = Color(0xFFE6E3E3),
                                                 maxLines = 2,
                                             )
                                             Column(
@@ -311,7 +311,7 @@ fun PodcastScreen(
                                                             Text(
                                                                 text = data.author.name,
                                                                 style = typo().labelSmall,
-                                                                color = Color.White,
+                                                                color = Color(0xFFE6E3E3),
                                                             )
                                                         }
                                                     }
@@ -391,7 +391,7 @@ fun PodcastScreen(
                                                         data.listEpisode.size.toString(),
                                                         "",
                                                     ),
-                                                color = Color.White,
+                                                color = Color(0xFFE6E3E3),
                                                 style = typo().bodyMedium,
                                                 modifier = Modifier.padding(vertical = 8.dp),
                                             )

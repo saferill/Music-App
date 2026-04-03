@@ -123,7 +123,7 @@ fun LibraryItem(
                 Text(
                     text = title,
                     style = typo().headlineMedium,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     maxLines = 1,
                     modifier =
                         Modifier
@@ -287,7 +287,7 @@ fun LibraryItem(
                                         Text(
                                             text = song.title,
                                             style = typo().labelSmall,
-                                            color = Color.White,
+                                            color = Color(0xFFE6E3E3),
                                             maxLines = 1,
                                             modifier =
                                                 Modifier

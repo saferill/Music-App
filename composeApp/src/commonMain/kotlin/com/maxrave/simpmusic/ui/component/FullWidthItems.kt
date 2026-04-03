@@ -150,7 +150,7 @@ fun SongFullWidthItems(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        tint = Color.White,
+                        tint = Color(0xFFE6E3E3),
                         imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
                         contentDescription = stringResource(Res.string.add_to_queue),
                     )
@@ -239,7 +239,7 @@ fun SongFullWidthItems(
                         } else {
                             Text(
                                 text = (index + 1).toString(),
-                                color = Color.White,
+                                color = Color(0xFFE6E3E3),
                                 style = typo().titleMedium,
                                 modifier = Modifier.align(Alignment.Center),
                             )
@@ -257,7 +257,7 @@ fun SongFullWidthItems(
                         text = track?.title ?: songEntity?.title ?: "",
                         style = typo().titleSmall,
                         maxLines = 1,
-                        color = Color.White,
+                        color = Color(0xFFE6E3E3),
                         modifier =
                             Modifier
                                 .fillMaxWidth()
@@ -279,7 +279,7 @@ fun SongFullWidthItems(
                             Row {
                                 Icon(
                                     painter = painterResource(Res.drawable.download_for_offline_white),
-                                    tint = Color.White,
+                                    tint = Color(0xFFE6E3E3),
                                     contentDescription = "",
                                     modifier = Modifier.size(16.dp).padding(2.dp),
                                 )
@@ -306,7 +306,7 @@ fun SongFullWidthItems(
                                 ) ?: "",
                             style = typo().bodySmall,
                             maxLines = 1,
-                            color = Color(0xC4FFFFFF),
+                            color = Color(0xC4E6E3E3),
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
@@ -335,7 +335,7 @@ fun SongFullWidthItems(
                     Icon(
                         Icons.Rounded.DragHandle,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = Color(0xFFE6E3E3),
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
                 }
@@ -416,7 +416,7 @@ fun SuggestItems(
                     text = track.title,
                     style = typo().titleSmall,
                     maxLines = 1,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -433,7 +433,7 @@ fun SuggestItems(
                         ) ?: "",
                     style = typo().bodySmall,
                     maxLines = 1,
-                    color = Color(0xC4FFFFFF),
+                    color = Color(0xC4E6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -565,7 +565,7 @@ fun PlaylistFullWidthItems(
                     text = title,
                     style = typo().titleSmall,
                     maxLines = 1,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -592,7 +592,7 @@ fun PlaylistFullWidthItems(
                         text = "$firstSubtitle ${if (secondSubtitle.isNotEmpty()) " • $secondSubtitle" else ""}",
                         style = typo().bodySmall,
                         maxLines = 1,
-                        color = Color(0xC4FFFFFF),
+                        color = Color(0xC4E6E3E3),
                         modifier =
                             Modifier
                                 .fillMaxWidth()
@@ -609,7 +609,7 @@ fun PlaylistFullWidthItems(
                         text = thirdRowSubtitle,
                         style = typo().bodySmall,
                         maxLines = 1,
-                        color = Color(0xC4FFFFFF),
+                        color = Color(0xC4E6E3E3),
                         modifier =
                             Modifier
                                 .fillMaxWidth()
@@ -684,7 +684,7 @@ fun ArtistFullWidthItems(
                     text = name,
                     style = typo().titleSmall,
                     maxLines = 1,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -699,7 +699,7 @@ fun ArtistFullWidthItems(
                     text = stringResource(Res.string.artists),
                     style = typo().bodySmall,
                     maxLines = 1,
-                    color = Color(0xC4FFFFFF),
+                    color = Color(0xC4E6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()

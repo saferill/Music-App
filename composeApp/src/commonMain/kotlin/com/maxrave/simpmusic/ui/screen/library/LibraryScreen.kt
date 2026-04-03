@@ -74,6 +74,8 @@ import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
 import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
@@ -372,8 +374,8 @@ fun LibraryScreen(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = sonara_surface_container_high),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -386,7 +388,7 @@ fun LibraryScreen(
                                 .height(4.dp),
                         colors =
                             CardDefaults.cardColors().copy(
-                                containerColor = Color(0xFF474545),
+                                containerColor = md_theme_dark_onSurfaceVariant.copy(alpha = 0.35f),
                             ),
                         shape = RoundedCornerShape(50),
                     ) {}
@@ -436,8 +438,8 @@ fun LibraryScreen(
             title = {
                 Text(
                     text = stringResource(Res.string.library),
-                    style = typo().titleMedium,
-                    color = Color.White,
+                    style = typo().titleLarge,
+                    color = Color(0xFFE6E3E3),
                 )
             },
             colors =
@@ -451,7 +453,7 @@ fun LibraryScreen(
                     },
                 ) {
                     Box {
-                        Icon(Icons.Rounded.AutoGraph, "Analytics", tint = Color.White)
+                        Icon(Icons.Rounded.AutoGraph, "Analytics", tint = md_theme_dark_onSurfaceVariant)
                         Text(
                             "NEW",
                             Modifier.align(Alignment.BottomEnd),

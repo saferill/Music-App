@@ -238,12 +238,12 @@ fun FullscreenPlayer(
                                 Icon(
                                     Icons.Filled.KeyboardDoubleArrowLeft,
                                     "",
-                                    tint = Color.White,
+                                    tint = Color(0xFFE6E3E3),
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
                                     stringResource(Res.string.five_seconds),
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     style = typo().bodyMedium,
                                 )
                             }
@@ -289,14 +289,14 @@ fun FullscreenPlayer(
                             ) {
                                 Text(
                                     stringResource(Res.string.five_seconds),
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     style = typo().bodyMedium,
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Icon(
                                     Icons.Filled.KeyboardDoubleArrowRight,
                                     "",
-                                    tint = Color.White,
+                                    tint = Color(0xFFE6E3E3),
                                 )
                             }
                         }
@@ -398,7 +398,7 @@ fun FullscreenPlayer(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.SkipPrevious,
-                                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.DarkGray,
+                                    tint = if (controllerState.isPreviousAvailable) Color(0xFFE6E3E3) else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
                                         Modifier
@@ -423,7 +423,7 @@ fun FullscreenPlayer(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Replay5,
-                                    tint = Color.White,
+                                    tint = Color(0xFFE6E3E3),
                                     contentDescription = "",
                                     modifier =
                                         Modifier
@@ -450,7 +450,7 @@ fun FullscreenPlayer(
                                     if (it) {
                                         Icon(
                                             imageVector = Icons.Filled.Pause,
-                                            tint = Color.White,
+                                            tint = Color(0xFFE6E3E3),
                                             contentDescription = "",
                                             modifier =
                                                 Modifier
@@ -459,7 +459,7 @@ fun FullscreenPlayer(
                                     } else {
                                         Icon(
                                             imageVector = Icons.Filled.PlayArrow,
-                                            tint = Color.White,
+                                            tint = Color(0xFFE6E3E3),
                                             contentDescription = "",
                                             modifier =
                                                 Modifier
@@ -486,7 +486,7 @@ fun FullscreenPlayer(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Forward5,
-                                    tint = Color.White,
+                                    tint = Color(0xFFE6E3E3),
                                     contentDescription = "",
                                     modifier =
                                         Modifier
@@ -512,7 +512,7 @@ fun FullscreenPlayer(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.SkipNext,
-                                    tint = if (controllerState.isNextAvailable) Color.White else Color.DarkGray,
+                                    tint = if (controllerState.isNextAvailable) Color(0xFFE6E3E3) else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
                                         Modifier
@@ -612,8 +612,8 @@ fun FullscreenPlayer(
                                                 sliderState = sliderState,
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
+                                                        thumbColor = Color(0xFFE6E3E3),
+                                                        activeTrackColor = Color(0xFFE6E3E3),
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 thumbTrackGapSize = 0.dp,
@@ -637,8 +637,8 @@ fun FullscreenPlayer(
                                                     },
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
+                                                        thumbColor = Color(0xFFE6E3E3),
+                                                        activeTrackColor = Color(0xFFE6E3E3),
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 enabled = true,
@@ -698,7 +698,7 @@ fun FullscreenPlayer(
                                             if (it) {
                                                 Icon(
                                                     imageVector = Icons.Filled.SubtitlesOff,
-                                                    tint = Color.White,
+                                                    tint = Color(0xFFE6E3E3),
                                                     contentDescription = "",
                                                     modifier =
                                                         Modifier
@@ -707,7 +707,7 @@ fun FullscreenPlayer(
                                             } else {
                                                 Icon(
                                                     imageVector = Icons.Filled.Subtitles,
-                                                    tint = Color.White,
+                                                    tint = Color(0xFFE6E3E3),
                                                     contentDescription = "",
                                                     modifier =
                                                         Modifier
@@ -735,7 +735,7 @@ fun FullscreenPlayer(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Filled.FullscreenExit,
-                                            tint = Color.White,
+                                            tint = Color(0xFFE6E3E3),
                                             contentDescription = "",
                                             modifier =
                                                 Modifier

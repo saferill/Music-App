@@ -521,7 +521,7 @@ fun LocalPlaylistScreen(
                                 Text(
                                     text = uiState.title,
                                     style = typo().titleMedium,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                 )
                                 Column(
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -529,7 +529,7 @@ fun LocalPlaylistScreen(
                                     Text(
                                         text = stringResource(Res.string.your_playlist),
                                         style = typo().titleSmall,
-                                        color = Color.White,
+                                        color = Color(0xFFE6E3E3),
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
@@ -553,7 +553,7 @@ fun LocalPlaylistScreen(
                                                 ) ?: "",
                                             ),
                                         style = typo().bodyMedium,
-                                        color = Color(0xC4FFFFFF),
+                                        color = Color(0xFFE6E3E3).copy(alpha = 0.77f),
                                     )
                                 }
                                 Row(
@@ -719,7 +719,7 @@ fun LocalPlaylistScreen(
                                             (uiState.trackCount).toString(),
                                             "",
                                         ),
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     style = typo().bodyMedium,
                                     modifier = Modifier.padding(vertical = 8.dp),
                                 )
@@ -736,7 +736,7 @@ fun LocalPlaylistScreen(
                                                     stringResource(
                                                         Res.string.suggest,
                                                     ),
-                                                color = Color.White,
+                                                color = Color(0xFFE6E3E3),
                                                 modifier =
                                                     Modifier
                                                         .padding(vertical = 8.dp)
@@ -750,7 +750,7 @@ fun LocalPlaylistScreen(
                                             ) {
                                                 Text(
                                                     text = stringResource(Res.string.reload),
-                                                    color = Color.White,
+                                                    color = Color(0xFFE6E3E3),
                                                     modifier =
                                                         Modifier.align(
                                                             Alignment.CenterVertically,
@@ -810,7 +810,7 @@ fun LocalPlaylistScreen(
                                                 Icon(
                                                     imageVector = Icons.AutoMirrored.Sharp.Sort,
                                                     contentDescription = "Sort playlist",
-                                                    tint = Color.White,
+                                                    tint = Color(0xFFE6E3E3),
                                                     modifier = Modifier.size(24.dp),
                                                 )
                                                 Spacer(modifier = Modifier.size(4.dp))

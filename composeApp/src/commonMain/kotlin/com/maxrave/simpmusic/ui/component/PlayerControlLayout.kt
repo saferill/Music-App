@@ -25,11 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.domain.mediaservice.handler.RepeatState
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_secondary
 import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.viewModel.UIEvent
 
@@ -52,6 +55,10 @@ fun PlayerControlLayout(
                 .height(height)
                 .padding(horizontal = 20.dp),
     ) {
+        val accentGradient =
+            Brush.linearGradient(
+                colors = listOf(md_theme_dark_primary, md_theme_dark_secondary),
+            )
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
             Box(
                 modifier =
@@ -71,14 +78,14 @@ fun PlayerControlLayout(
                     if (!isShuffle) {
                         Icon(
                             imageVector = Icons.Rounded.Shuffle,
-                            tint = Color.White,
+                            tint = Color(0xFFE6E3E3),
                             contentDescription = "",
                             modifier = Modifier.size(smallIcon.first),
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Rounded.Shuffle,
-                            tint = seed,
+                            tint = md_theme_dark_primary,
                             contentDescription = "",
                             modifier = Modifier.size(smallIcon.first),
                         )
@@ -105,7 +112,7 @@ fun PlayerControlLayout(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.SkipPrevious,
-                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                    tint = if (controllerState.isPreviousAvailable) Color(0xFFE6E3E3) else md_theme_dark_onSurfaceVariant,
                     contentDescription = "",
                     modifier = Modifier.size(mediumIcon.first),
                 )
@@ -115,7 +122,7 @@ fun PlayerControlLayout(
             Box(
                 modifier =
                     Modifier
-                        .background(transparent)
+                        .background(accentGradient)
                         .size(bigIcon.second)
                         .aspectRatio(1f)
                         .clip(
@@ -130,14 +137,14 @@ fun PlayerControlLayout(
                     if (!isPlaying) {
                         Icon(
                             imageVector = Icons.Rounded.PlayCircle,
-                            tint = Color.White,
+                            tint = Color.Black,
                             contentDescription = "",
                             modifier = Modifier.size(bigIcon.first),
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Rounded.PauseCircle,
-                            tint = Color.White,
+                            tint = Color.Black,
                             contentDescription = "",
                             modifier = Modifier.size(bigIcon.first),
                         )
@@ -164,7 +171,7 @@ fun PlayerControlLayout(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.SkipNext,
-                    tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                    tint = if (controllerState.isNextAvailable) Color(0xFFE6E3E3) else md_theme_dark_onSurfaceVariant,
                     contentDescription = "",
                     modifier = Modifier.size(mediumIcon.first),
                 )
@@ -189,7 +196,7 @@ fun PlayerControlLayout(
                         is RepeatState.None -> {
                             Icon(
                                 imageVector = Icons.Rounded.Repeat,
-                                tint = Color.White,
+                                tint = Color(0xFFE6E3E3),
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),
                             )
@@ -198,7 +205,7 @@ fun PlayerControlLayout(
                         RepeatState.All -> {
                             Icon(
                                 imageVector = Icons.Rounded.Repeat,
-                                tint = seed,
+                                tint = md_theme_dark_primary,
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),
                             )
@@ -207,7 +214,7 @@ fun PlayerControlLayout(
                         RepeatState.One -> {
                             Icon(
                                 imageVector = Icons.Rounded.RepeatOne,
-                                tint = seed,
+                                tint = md_theme_dark_primary,
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),
                             )

@@ -20,7 +20,7 @@ fun RippleIconButton(
     resId: DrawableResource,
     modifier: Modifier = Modifier,
     fillMaxSize: Boolean = false,
-    tint: Color = Color.White,
+    tint: Color = Color(0xFFE6E3E3),
     onClick: () -> Unit,
 ) {
     IconButton(

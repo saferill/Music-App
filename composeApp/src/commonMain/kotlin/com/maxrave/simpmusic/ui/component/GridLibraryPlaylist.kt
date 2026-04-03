@@ -5,6 +5,7 @@ import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
@@ -56,9 +58,11 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_secondary
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_low
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.ui.theme.white
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
@@ -133,32 +137,43 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                         Modifier
                                             .padding(10.dp),
                                 ) {
+                                    val shape = RoundedCornerShape(22.dp)
                                     Box(
                                         Modifier
                                             .size(132.dp)
                                             .aspectRatio(1f)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .angledGradientBackground(
-                                                colors =
+                                            .clip(shape)
+                                            .background(
+                                                Brush.linearGradient(
                                                     listOf(
-                                                        seed,
-                                                        white.copy(alpha = 0.8f),
+                                                        md_theme_dark_primary,
+                                                        md_theme_dark_secondary,
                                                     ),
-                                                degrees = 45f,
-                                            ),
+                                                ),
+                                            )
+                                            .padding(2.dp),
                                         Alignment.Center,
                                     ) {
-                                        Icon(
-                                            modifier = Modifier.size(84.dp),
-                                            imageVector = Icons.Rounded.Add,
-                                            tint = white,
-                                            contentDescription = null,
-                                        )
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .clip(shape)
+                                                    .background(sonara_surface_container_low),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(
+                                                modifier = Modifier.size(72.dp),
+                                                imageVector = Icons.Rounded.Add,
+                                                tint = md_theme_dark_primary,
+                                                contentDescription = null,
+                                            )
+                                        }
                                     }
                                     Text(
                                         text = stringResource(Res.string.create),
-                                        style = typo().titleSmall,
-                                        color = Color.White,
+                                        style = typo().titleMedium,
+                                        color = md_theme_dark_onSurfaceVariant,
                                         maxLines = 1,
                                         modifier =
                                             Modifier
@@ -268,7 +283,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                     Text(
                         text = stringResource(emptyText),
                         style = typo().bodyMedium,
-                        color = Color.White,
+                        color = Color(0xFFE6E3E3),
                     )
                 }
             }

@@ -10,17 +10,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.poppins_bold
 import simpmusic.composeapp.generated.resources.poppins_medium
+import simpmusic.composeapp.generated.resources.poppins_regular
 
 @Composable
-fun fontFamily(): FontFamily =
+fun fontFamilyBody(): FontFamily =
     FontFamily(
-        Font(Res.font.poppins_medium, FontWeight.Normal, FontStyle.Normal),
+        Font(Res.font.poppins_regular, FontWeight.Normal, FontStyle.Normal),
+        Font(Res.font.poppins_medium, FontWeight.Medium, FontStyle.Normal),
+    )
+
+@Composable
+fun fontFamilyDisplay(): FontFamily =
+    FontFamily(
+        Font(Res.font.poppins_bold, FontWeight.Bold, FontStyle.Normal),
+        Font(Res.font.poppins_medium, FontWeight.Medium, FontStyle.Normal),
+    )
+
+@Composable
+fun fontFamilyLabel(): FontFamily =
+    FontFamily(
+        Font(Res.font.poppins_medium, FontWeight.Medium, FontStyle.Normal),
+        Font(Res.font.poppins_regular, FontWeight.Normal, FontStyle.Normal),
     )
 
 @Composable
 fun typo(): Typography {
-    val fontFamily = fontFamily()
+    val bodyFont = fontFamilyBody()
+    val displayFont = fontFamilyDisplay()
+    val labelFont = fontFamilyLabel()
 
     val typo =
         Typography(
@@ -29,80 +48,83 @@ fun typo(): Typography {
              */
             titleSmall =
                 TextStyle(
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = fontFamily,
-                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = labelFont,
+                    color = Color(0xFFE6E3E3),
+                    letterSpacing = (-0.1).sp,
                 ),
             titleMedium =
                 TextStyle(
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = fontFamily,
-                    color = Color.White,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = displayFont,
+                    color = Color(0xFFE6E3E3),
                 ),
             titleLarge =
                 TextStyle(
-                    fontSize = 25.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
-                    color = Color.White,
+                    fontFamily = displayFont,
+                    color = Color(0xFFE6E3E3),
+                    letterSpacing = (-0.2).sp,
                 ),
             bodySmall =
                 TextStyle(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Normal,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontFamily = bodyFont,
+                    color = Color(0xFFADAAAA),
                 ),
             bodyMedium =
                 TextStyle(
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontFamily = bodyFont,
+                    color = Color(0xFFADAAAA),
                 ),
             bodyLarge =
                 TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Normal,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontFamily = bodyFont,
+                    color = Color(0xFFADAAAA),
                 ),
             displayLarge =
                 TextStyle(
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = displayFont,
+                    color = Color(0xFFE6E3E3),
+                    letterSpacing = (-0.3).sp,
                 ),
             headlineMedium =
                 TextStyle(
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = displayFont,
+                    color = Color(0xFFE6E3E3),
                 ),
             headlineLarge =
                 TextStyle(
-                    fontSize = 23.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontFamily = displayFont,
+                    color = Color(0xFFE6E3E3),
                 ),
             labelMedium =
                 TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = labelFont,
+                    color = Color(0xFFADAAAA),
                 ),
             labelSmall =
                 TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = fontFamily,
-                    color = Color(0xFFA8A8A8),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = labelFont,
+                    color = Color(0xFFADAAAA),
                 ),
             // ...
         )

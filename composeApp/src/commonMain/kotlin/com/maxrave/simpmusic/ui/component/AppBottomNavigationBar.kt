@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +25,9 @@ import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -64,25 +68,31 @@ fun AppBottomNavigationBar(
                             Brush.verticalGradient(
                                 listOf(
                                     Color.Transparent,
-                                    Color.Black.copy(alpha = 0.5f),
-                                    Color.Black.copy(alpha = 0.8f),
-                                    Color.Black,
+                                    Color.Black.copy(alpha = 0.25f),
+                                    Color.Black.copy(alpha = 0.65f),
+                                    Color.Black.copy(alpha = 0.85f),
                                 ),
                             ),
                         )
                     } else {
                         Modifier
                     },
-                ),
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
+        val barShape = RoundedCornerShape(24.dp)
         NavigationBar(
             windowInsets = WindowInsets(0, 0, 0, 0),
             containerColor =
                 if (isTranslucentBackground) {
                     Color.Transparent
                 } else {
-                    Color.Black
+                    sonara_surface_container_high.copy(alpha = 0.92f)
                 },
+            modifier =
+                Modifier
+                    .clip(barShape)
+                    .background(sonara_surface_container_high.copy(alpha = 0.92f)),
         ) {
             bottomNavScreens.forEach { screen ->
                 NavigationBarItem(
@@ -113,18 +123,21 @@ fun AppBottomNavigationBar(
                     label = {
                         Text(
                             stringResource(screen.title),
-                            style =
-                                if (selectedIndex == screen.ordinal) {
-                                    typo().bodySmall
-                                } else {
-                                    typo().bodySmall.greyScale()
-                                },
+                            style = typo().labelSmall,
                         )
                     },
                     icon = screen.icon,
                     modifier =
                         Modifier.windowInsetsPadding(
                             NavigationBarDefaults.windowInsets,
+                        ),
+                    colors =
+                        NavigationBarItemDefaults.colors(
+                            selectedIconColor = md_theme_dark_primary,
+                            selectedTextColor = md_theme_dark_primary,
+                            unselectedIconColor = md_theme_dark_onSurfaceVariant,
+                            unselectedTextColor = md_theme_dark_onSurfaceVariant,
+                            indicatorColor = Color.Transparent,
                         ),
                 )
             }

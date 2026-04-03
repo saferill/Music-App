@@ -235,7 +235,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.top_song),
                                     style = typo().titleLarge,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     maxLines = 1,
                                 )
                                 Row(
@@ -249,7 +249,7 @@ fun AnalyticsScreen(
                                         Text(
                                             topTrack.second.title,
                                             style = typo().labelMedium,
-                                            color = Color.White,
+                                            color = Color(0xFFE6E3E3),
                                             maxLines = 1,
                                         )
                                         Text(
@@ -264,7 +264,7 @@ fun AnalyticsScreen(
                                         Text(
                                             "Listened time",
                                             style = typo().bodyMedium,
-                                            color = Color.White,
+                                            color = Color(0xFFE6E3E3),
                                             maxLines = 1,
                                         )
                                         Text(
@@ -307,7 +307,7 @@ fun AnalyticsScreen(
                                     stringResource(Res.string.songs_played),
                                     style = typo().bodyMedium,
                                     textDecoration = TextDecoration.Underline,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     maxLines = 1,
                                 )
                                 Text(
@@ -330,7 +330,7 @@ fun AnalyticsScreen(
                                     stringResource(Res.string.artists),
                                     style = typo().bodyMedium,
                                     textDecoration = TextDecoration.Underline,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     maxLines = 1,
                                 )
                                 Text(
@@ -353,7 +353,7 @@ fun AnalyticsScreen(
                                     stringResource(Res.string.total_listened_time),
                                     style = typo().bodyMedium,
                                     textDecoration = TextDecoration.Underline,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     maxLines = 1,
                                 )
                                 Text(
@@ -384,7 +384,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_recently_played),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -395,7 +395,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = Color(0xFFE6E3E3),
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -486,7 +486,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_top_artists),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -501,7 +501,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = Color(0xFFE6E3E3),
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -550,7 +550,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_top_albums),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -565,7 +565,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = Color(0xFFE6E3E3),
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -616,7 +616,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_top_tracks),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = Color(0xFFE6E3E3),
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -631,7 +631,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = Color(0xFFE6E3E3),
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -734,7 +734,7 @@ fun AnalyticsScreen(
                             Text(
                                 text = stringResource(Res.string.date_range),
                                 style = typo().labelMedium,
-                                color = Color.White,
+                                color = Color(0xFFE6E3E3),
                             )
                             Row(
                                 modifier = Modifier.padding(top = 12.dp),
@@ -855,7 +855,7 @@ fun AnalyticsScreen(
                                         alpha = 0.8f,
                                     ),
                                 contentColor =
-                                    Color.White.copy(
+                    Color(0xFFE6E3E3).copy(
                                         alpha = 0.6f,
                                     ),
                             ),
@@ -885,13 +885,13 @@ fun AnalyticsScreen(
                                         alpha = 0.8f,
                                     ),
                                 contentColor =
-                                    Color.White.copy(
+                    Color(0xFFE6E3E3).copy(
                                         alpha = 0.6f,
                                     ),
                             ),
                     ) {
                         Box {
-                            Icon(Icons.Rounded.CalendarToday, "Analytics", tint = Color.White)
+                            Icon(Icons.Rounded.CalendarToday, "Analytics", tint = Color(0xFFE6E3E3))
                             Text(
                                 when (uiState.dayRange) {
                                     AnalyticsUiState.DayRange.LAST_7_DAYS -> "7d"
@@ -900,7 +900,7 @@ fun AnalyticsScreen(
                                     AnalyticsUiState.DayRange.THIS_YEAR -> "1y"
                                 },
                                 style = typo().bodySmall.copy(fontSize = 8.sp),
-                                color = Color.White,
+                                color = Color(0xFFE6E3E3),
                                 modifier = Modifier.align(Alignment.Center),
                             )
                         }

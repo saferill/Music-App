@@ -248,7 +248,7 @@ fun ItemAlbumNotification(
             Text(
                 text = title,
                 style = typo().titleSmall,
-                color = Color.White,
+                color = Color(0xFFE6E3E3),
                 maxLines = 1,
                 modifier =
                     Modifier

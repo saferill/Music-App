@@ -443,7 +443,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
             }
 
             val searchColor by animateColorAsState(
-                targetValue = if (luminanceAnimation.value > 0.6f) Color.Black else Color.White,
+                targetValue = if (luminanceAnimation.value > 0.6f) Color.Black else Color(0xFFE6E3E3),
                 label = "MiniPlayerTextColor",
                 animationSpec = tween(500),
             )

@@ -121,7 +121,9 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestina
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.DarkColors
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.utils.VersionManager
@@ -1706,7 +1708,7 @@ fun SettingScreen(
                                             .width(
                                                 (fraction.appDatabase * width).dp,
                                             ).background(
-                                                Color.White,
+                                                Color(0xFFE6E3E3),
                                             ),
                                 )
                             }
@@ -1807,7 +1809,7 @@ fun SettingScreen(
                                 .size(12.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    Color.White,
+                                    Color(0xFFE6E3E3),
                                 ),
                         )
                         Spacer(Modifier.width(8.dp))
@@ -2134,14 +2136,14 @@ fun SettingScreen(
                                 onClick = { showYouTubeAccountDialog = false },
                                 colors =
                                     IconButtonDefaults.iconButtonColors().copy(
-                                        contentColor = Color.White,
+                                        contentColor = md_theme_dark_onSurfaceVariant,
                                     ),
                                 modifier =
                                     Modifier
                                         .align(Alignment.CenterStart)
                                         .fillMaxHeight(),
                             ) {
-                                Icon(Icons.Outlined.Close, null, tint = Color.White)
+                                Icon(Icons.Outlined.Close, null, tint = md_theme_dark_onSurfaceVariant)
                             }
                             Text(
                                 stringResource(Res.string.youtube_account),
@@ -2502,7 +2504,7 @@ fun SettingScreen(
                                 override val containerColor: Color
                                     get() = Color.DarkGray
                                 override val contentColor: Color
-                                    get() = Color.White
+                                    get() = md_theme_dark_onSurfaceVariant
                             },
                     ),
                 header = {
@@ -2515,7 +2517,8 @@ fun SettingScreen(
                                         stringResource(
                                             Res.string.third_party_libraries,
                                         ),
-                                    style = typo().titleMedium,
+                                    style = typo().titleLarge,
+                                    color = Color(0xFFE6E3E3),
                                 )
                             },
                             navigationIcon = {
@@ -2525,6 +2528,7 @@ fun SettingScreen(
                                         Modifier
                                             .size(32.dp),
                                         true,
+                                        tint = md_theme_dark_onSurfaceVariant,
                                     ) {
                                         coroutineScope.launch {
                                             sheetState.hide()
@@ -2547,7 +2551,8 @@ fun SettingScreen(
                     stringResource(
                         Res.string.settings,
                     ),
-                style = typo().titleMedium,
+                style = typo().titleLarge,
+                color = Color(0xFFE6E3E3),
             )
         },
         navigationIcon = {
@@ -2557,6 +2562,7 @@ fun SettingScreen(
                     Modifier
                         .size(32.dp),
                     true,
+                    tint = md_theme_dark_onSurfaceVariant,
                 ) {
                     navController.navigateUp()
                 }

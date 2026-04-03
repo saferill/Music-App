@@ -98,6 +98,9 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_low
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SearchScreenUIState
 import com.maxrave.simpmusic.viewModel.SearchType
@@ -293,6 +296,7 @@ fun SearchScreen(
                             Text(
                                 text = placeholderTexts[index],
                                 style = typo().labelMedium,
+                                color = md_theme_dark_onSurfaceVariant,
                             )
                         }
                     },
@@ -300,6 +304,7 @@ fun SearchScreen(
                         Icon(
                             painter = painterResource(Res.drawable.baseline_search_24),
                             contentDescription = "Search",
+                            tint = md_theme_dark_onSurfaceVariant,
                         )
                     },
                     trailingIcon = {
@@ -315,6 +320,7 @@ fun SearchScreen(
                                 Icon(
                                     painter = painterResource(Res.drawable.baseline_close_24),
                                     contentDescription = "Clear search",
+                                    tint = md_theme_dark_onSurfaceVariant,
                                 )
                             }
                         }
@@ -330,7 +336,18 @@ fun SearchScreen(
                     .onFocusChanged {
                         isFocused = it.isFocused
                     }.padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors =
+                SearchBarDefaults.colors(
+                    containerColor = sonara_surface_container_low,
+                    dividerColor = Color.Transparent,
+                    inputFieldColors =
+                        SearchBarDefaults.inputFieldColors(
+                            focusedTextColor = Color(0xFFE6E3E3),
+                            unfocusedTextColor = Color(0xFFE6E3E3),
+                            cursorColor = md_theme_dark_primary,
+                        ),
+                ),
             content = {},
         )
 

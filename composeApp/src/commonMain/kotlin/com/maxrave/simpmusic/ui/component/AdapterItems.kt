@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -81,12 +82,16 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
-import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.ifNullOrEmpty
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_secondary
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_low
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -180,13 +185,14 @@ fun HomeItem(
                 AnimatedVisibility(visible = (data.subtitle != null && data.subtitle != "")) {
                     Text(
                         text = data.subtitle ?: "",
-                        style = typo().bodySmall,
+                        style = typo().labelSmall,
+                        color = md_theme_dark_onSurfaceVariant,
                     )
                 }
                 Text(
                     text = data.title,
                     style = typo().headlineMedium,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     maxLines = 1,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -397,9 +403,8 @@ fun HomeItemContentPlaylist(
                     Modifier
                         .size(thumbSize)
                         .aspectRatio(1f)
-                        .clip(
-                            RoundedCornerShape(10.dp),
-                        ),
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(sonara_surface_container_low),
             )
             Text(
                 text =
@@ -419,8 +424,8 @@ fun HomeItemContentPlaylist(
                         is AlbumsResult -> data.title
                         else -> ""
                     },
-                style = typo().titleSmall,
-                color = Color.White,
+                style = typo().titleMedium,
+                color = Color(0xFFE6E3E3),
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -571,7 +576,8 @@ fun QuickPicksItem(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(10.dp),
+                    .background(sonara_surface_container_high, RoundedCornerShape(18.dp))
+                    .padding(12.dp),
         ) {
             AsyncImage(
                 model =
@@ -588,9 +594,9 @@ fun QuickPicksItem(
                 modifier =
                     Modifier
                         .align(Alignment.CenterVertically)
-                        .size(44.dp)
+                        .size(52.dp)
                         .clip(
-                            RoundedCornerShape(10),
+                            RoundedCornerShape(14.dp),
                         ),
             )
             Column(
@@ -602,9 +608,9 @@ fun QuickPicksItem(
             ) {
                 Text(
                     text = data.title,
-                    style = typo().titleSmall,
+                    style = typo().titleMedium,
                     maxLines = 1,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -634,6 +640,7 @@ fun QuickPicksItem(
                             text = data.artists.toListName().connectArtists(),
                             style = typo().bodySmall,
                             maxLines = 1,
+                            color = md_theme_dark_onSurfaceVariant,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
@@ -701,13 +708,14 @@ fun HomeItemSong(
                         .align(Alignment.CenterHorizontally)
                         .size(160.dp)
                         .clip(
-                            RoundedCornerShape(10.dp),
-                        ),
+                            RoundedCornerShape(22.dp),
+                        )
+                        .background(sonara_surface_container_low),
             )
             Text(
                 text = data.title,
-                style = typo().titleSmall,
-                color = Color.White,
+                style = typo().titleMedium,
+                color = Color(0xFFE6E3E3),
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -733,6 +741,7 @@ fun HomeItemSong(
                     text = data.artists.toListName().connectArtists(),
                     style = typo().bodySmall,
                     maxLines = 1,
+                    color = md_theme_dark_onSurfaceVariant,
                     modifier =
                         Modifier
                             .width(160.dp)
@@ -748,6 +757,7 @@ fun HomeItemSong(
                 text = data.album?.name ?: stringResource(Res.string.songs),
                 style = typo().bodySmall,
                 maxLines = 1,
+                color = md_theme_dark_onSurfaceVariant,
                 modifier =
                     Modifier
                         .width(160.dp)
@@ -805,13 +815,14 @@ fun HomeItemVideo(
                         .height(160.dp)
                         .aspectRatio(16f / 9f)
                         .clip(
-                            RoundedCornerShape(10.dp),
-                        ),
+                            RoundedCornerShape(22.dp),
+                        )
+                        .background(sonara_surface_container_low),
             )
             Text(
                 text = data.title,
-                style = typo().titleSmall,
-                color = Color.White,
+                style = typo().titleMedium,
+                color = Color(0xFFE6E3E3),
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -827,6 +838,7 @@ fun HomeItemVideo(
                 text = data.artists.toListName().connectArtists(),
                 style = typo().bodySmall,
                 maxLines = 1,
+                color = md_theme_dark_onSurfaceVariant,
                 modifier =
                     Modifier
                         .width(284.5.dp)
@@ -841,6 +853,7 @@ fun HomeItemVideo(
                 text = data.views ?: stringResource(Res.string.videos),
                 style = typo().bodySmall,
                 maxLines = 1,
+                color = md_theme_dark_onSurfaceVariant,
                 modifier =
                     Modifier
                         .width(284.5.dp)
@@ -894,12 +907,13 @@ fun HomeItemArtist(
                         .size(160.dp)
                         .clip(
                             CircleShape,
-                        ),
+                        )
+                        .background(sonara_surface_container_low),
             )
             Text(
                 text = data.title,
-                style = typo().titleSmall,
-                color = Color.White,
+                style = typo().titleMedium,
+                color = Color(0xFFE6E3E3),
                 maxLines = 1,
                 textAlign = TextAlign.Center,
                 modifier =
@@ -916,6 +930,7 @@ fun HomeItemArtist(
                 text = data.description.ifNullOrEmpty { stringResource(Res.string.artists) },
                 style = typo().bodySmall,
                 maxLines = 1,
+                color = md_theme_dark_onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
@@ -955,25 +970,33 @@ fun MoodMomentAndGenreHomeItem(
                 defaultElevation = 6.dp,
             ),
         onClick = onClick,
-        shape = RoundedCornerShape(5.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = sonara_surface_container_high,
+            ),
         modifier =
             Modifier
                 .width(160.dp)
-                .height(50.dp)
+                .height(56.dp)
                 .padding(8.dp),
     ) {
         Row {
             Box(
                 Modifier
-                    .width(10.dp)
+                    .width(6.dp)
                     .height(64.dp)
-                    .background(generateRandomColor()),
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(md_theme_dark_primary, md_theme_dark_secondary),
+                        ),
+                    ),
             )
             Text(
                 text = title,
-                style = typo().titleSmall,
+                style = typo().titleMedium,
                 textAlign = TextAlign.Center,
-                color = Color.White,
+                color = Color(0xFFE6E3E3),
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -1023,8 +1046,9 @@ fun ItemVideoChart(
                         .width(280.dp)
                         .height(160.dp)
                         .clip(
-                            RoundedCornerShape(10),
-                        ),
+                            RoundedCornerShape(22.dp),
+                        )
+                        .background(sonara_surface_container_low),
             )
             Row {
                 Text(
@@ -1047,7 +1071,7 @@ fun ItemVideoChart(
                         text = data.title,
                         style = typo().titleMedium,
                         maxLines = 1,
-                        color = Color.White,
+                        color = Color(0xFFE6E3E3),
                         modifier =
                             Modifier
                                 .width(210.dp)
@@ -1061,6 +1085,7 @@ fun ItemVideoChart(
                     Text(
                         text = data.artists.toListName().connectArtists(),
                         style = typo().bodyMedium,
+                        color = md_theme_dark_onSurfaceVariant,
                         modifier =
                             Modifier
                                 .width(210.dp)
@@ -1074,6 +1099,7 @@ fun ItemVideoChart(
                     Text(
                         text = data.views,
                         style = typo().bodySmall,
+                        color = md_theme_dark_onSurfaceVariant,
                         modifier =
                             Modifier
                                 .width(210.dp)
@@ -1154,6 +1180,7 @@ fun ItemArtistChart(
                 Text(
                     text = data.title,
                     style = typo().titleMedium,
+                    color = Color(0xFFE6E3E3),
                     modifier =
                         Modifier
                             .wrapContentHeight(align = Alignment.CenterVertically)
@@ -1176,6 +1203,7 @@ fun ItemArtistChart(
                             )
                         },
                     style = typo().bodySmall,
+                    color = md_theme_dark_onSurfaceVariant,
                     modifier =
                         Modifier
                             .wrapContentHeight(align = Alignment.CenterVertically)
@@ -1253,8 +1281,9 @@ fun ItemTrackChart(
                         .align(Alignment.CenterVertically)
                         .size(50.dp)
                         .clip(
-                            RoundedCornerShape(10),
-                        ),
+                            RoundedCornerShape(16.dp),
+                        )
+                        .background(sonara_surface_container_low),
             )
             Column(
                 Modifier
@@ -1267,7 +1296,7 @@ fun ItemTrackChart(
                     text = data.title,
                     style = typo().titleSmall,
                     maxLines = 1,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -1285,6 +1314,7 @@ fun ItemTrackChart(
                     text = data.artists.toListName().connectArtists(),
                     style = typo().bodySmall,
                     maxLines = 1,
+                    color = md_theme_dark_onSurfaceVariant,
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -1314,8 +1344,8 @@ fun MoodAndGenresContentItem(
                     is Item -> (data).header
                     else -> ""
                 },
-            style = typo().titleMedium,
-            color = Color.White,
+            style = typo().titleLarge,
+            color = Color(0xFFE6E3E3),
             modifier =
                 Modifier
                     .padding(top = 8.dp)

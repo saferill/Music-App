@@ -110,6 +110,9 @@ import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.sonara_surface_container_high
 import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -148,7 +151,7 @@ fun MiniPlayer(
     val luminanceAnimation = remember { Animatable(0f) }
 
     val textColor by animateColorAsState(
-        targetValue = if (luminanceAnimation.value > 0.6f) Color.Black else Color.White,
+        targetValue = if (luminanceAnimation.value > 0.6f) Color.Black else Color(0xFFE6E3E3),
         label = "MiniPlayerTextColor",
         animationSpec = tween(500),
     )
@@ -280,17 +283,27 @@ fun MiniPlayer(
 
     if (getPlatform() == Platform.Android) {
         Card(
-            shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(12.dp),
+            shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) RoundedCornerShape(26.dp) else RoundedCornerShape(22.dp),
             colors =
                 CardDefaults.cardColors(
-                    containerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
-                    disabledContainerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
+                    containerColor =
+                        if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                            transparent
+                        } else {
+                            sonara_surface_container_high.copy(alpha = 0.95f)
+                        },
+                    disabledContainerColor =
+                        if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                            transparent
+                        } else {
+                            sonara_surface_container_high.copy(alpha = 0.95f)
+                        },
                 ),
             modifier =
                 modifier
                     .then(
                         if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                            Modifier.drawBackdropCustomShape(backdrop, layer, luminanceAnimation.value, RoundedCornerShape(16.dp))
+                            Modifier.drawBackdropCustomShape(backdrop, layer, luminanceAnimation.value, RoundedCornerShape(26.dp))
                         } else {
                             Modifier
                         },
@@ -533,7 +546,7 @@ fun MiniPlayer(
                                     color = Color.Transparent,
                                     shape = RoundedCornerShape(4.dp),
                                 ),
-                        color = Color.White,
+                        color = md_theme_dark_primary,
                         trackColor = Color.Transparent,
                         strokeCap = StrokeCap.Round,
                         drawStopIndicator = {},
@@ -761,8 +774,8 @@ fun MiniPlayer(
                                                 sliderState = sliderState,
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
+                                                        thumbColor = Color(0xFFE6E3E3),
+                                                        activeTrackColor = md_theme_dark_primary,
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 thumbTrackGapSize = 0.dp,
@@ -786,8 +799,8 @@ fun MiniPlayer(
                                                     },
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
+                                                        thumbColor = Color(0xFFE6E3E3),
+                                                        activeTrackColor = md_theme_dark_primary,
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 enabled = true,
@@ -878,9 +891,9 @@ fun MiniPlayer(
                                         sliderState = sliderState,
                                         colors =
                                             SliderDefaults.colors().copy(
-                                                thumbColor = Color.White,
-                                                activeTrackColor = Color.White,
-                                                inactiveTrackColor = Color.Gray,
+                                                thumbColor = Color(0xFFE6E3E3),
+                                                activeTrackColor = md_theme_dark_primary,
+                                                inactiveTrackColor = md_theme_dark_onSurfaceVariant.copy(alpha = 0.5f),
                                             ),
                                         thumbTrackGapSize = 0.dp,
                                         drawTick = { _, _ -> },
@@ -903,9 +916,9 @@ fun MiniPlayer(
                                             },
                                         colors =
                                             SliderDefaults.colors().copy(
-                                                thumbColor = Color.White,
-                                                activeTrackColor = Color.White,
-                                                inactiveTrackColor = Color.DarkGray,
+                                                thumbColor = Color(0xFFE6E3E3),
+                                                activeTrackColor = md_theme_dark_primary,
+                                                inactiveTrackColor = md_theme_dark_onSurfaceVariant.copy(alpha = 0.6f),
                                             ),
                                         enabled = true,
                                     )

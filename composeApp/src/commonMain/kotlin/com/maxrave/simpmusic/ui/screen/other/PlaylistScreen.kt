@@ -382,7 +382,7 @@ fun PlaylistScreen(
                                                 showSearchBar = !showSearchBar
                                             },
                                         ) {
-                                            Icon(Icons.Rounded.Search, null, tint = Color.White)
+                                            Icon(Icons.Rounded.Search, null, tint = Color(0xFFE6E3E3))
                                         }
                                     }
                                     Column(
@@ -427,7 +427,7 @@ fun PlaylistScreen(
                                                 Text(
                                                     text = data.title,
                                                     style = typo().titleMedium,
-                                                    color = Color.White,
+                                                    color = Color(0xFFE6E3E3),
                                                     maxLines = 2,
                                                 )
                                                 Column(
@@ -455,7 +455,7 @@ fun PlaylistScreen(
                                                             Text(
                                                                 text = data.author.name,
                                                                 style = typo().labelSmall,
-                                                                color = Color.White,
+                                                                color = Color(0xFFE6E3E3),
                                                             )
                                                         }
                                                     }
@@ -628,7 +628,7 @@ fun PlaylistScreen(
                                                                 "",
                                                             )
                                                         },
-                                                    color = Color.White,
+                                                    color = Color(0xFFE6E3E3),
                                                     style = typo().bodyMedium,
                                                     modifier = Modifier.padding(vertical = 8.dp),
                                                 )
@@ -690,7 +690,7 @@ fun PlaylistScreen(
                                             showSearchBar = !showSearchBar
                                         },
                                     ) {
-                                        Icon(Icons.Rounded.Close, null, tint = Color.White)
+                                        Icon(Icons.Rounded.Close, null, tint = Color(0xFFE6E3E3))
                                     }
                                 }
                             }
@@ -871,7 +871,7 @@ fun PlaylistScreen(
                                     showSearchBar = !showSearchBar
                                 },
                             ) {
-                                Icon(Icons.Rounded.Search, null, tint = Color.White)
+                                Icon(Icons.Rounded.Search, null, tint = Color(0xFFE6E3E3))
                             }
                         },
                         colors =

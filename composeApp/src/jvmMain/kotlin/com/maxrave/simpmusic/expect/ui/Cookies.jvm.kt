@@ -57,7 +57,7 @@ actual fun PlatformWebView(
             Text(
                 stringResource(Res.string.desktop_webview_description),
                 style = typo().labelMedium,
-                color = Color.White,
+                color = Color(0xFFE6E3E3),
                 textAlign = TextAlign.Center
             )
             Button(
@@ -93,7 +93,7 @@ actual fun DiscordWebView(
             Text(
                 stringResource(Res.string.desktop_webview_description),
                 style = typo().labelMedium,
-                color = Color.White,
+                color = Color(0xFFE6E3E3),
                 textAlign = TextAlign.Center
             )
             Button(

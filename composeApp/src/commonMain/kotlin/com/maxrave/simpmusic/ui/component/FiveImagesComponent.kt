@@ -90,7 +90,7 @@ fun FiveImagesComponent(
                 Text(
                     text = images.first().title,
                     style = typo().labelSmall,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     maxLines = 1,
                     modifier =
                         Modifier
@@ -104,7 +104,7 @@ fun FiveImagesComponent(
                 Text(
                     text = images.first().subtitle,
                     style = typo().bodySmall,
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     maxLines = 1,
                     modifier =
                         Modifier
@@ -190,7 +190,7 @@ fun FiveImagesComponent(
                         Text(
                             text = image.title,
                             style = typo().labelSmall,
-                            color = Color.White,
+                            color = Color(0xFFE6E3E3),
                             maxLines = 1,
                             modifier =
                                 Modifier
@@ -204,7 +204,7 @@ fun FiveImagesComponent(
                         Text(
                             text = image.subtitle,
                             style = typo().bodySmall,
-                            color = Color.White,
+                            color = Color(0xFFE6E3E3),
                             maxLines = 1,
                             modifier =
                                 Modifier
@@ -292,7 +292,7 @@ fun FiveImagesComponent(
                         Text(
                             text = image.title,
                             style = typo().labelSmall,
-                            color = Color.White,
+                            color = Color(0xFFE6E3E3),
                             maxLines = 1,
                             modifier =
                                 Modifier
@@ -306,7 +306,7 @@ fun FiveImagesComponent(
                         Text(
                             text = image.subtitle,
                             style = typo().bodySmall,
-                            color = Color.White,
+                            color = Color(0xFFE6E3E3),
                             maxLines = 1,
                             modifier =
                                 Modifier

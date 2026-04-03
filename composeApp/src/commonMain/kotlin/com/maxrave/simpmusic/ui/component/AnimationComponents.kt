@@ -46,7 +46,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun InfiniteBorderAnimationView(
     isAnimated: Boolean = false,
-    brush: Brush = Brush.sweepGradient(listOf(Color.Gray, Color.White)),
+    brush: Brush = Brush.sweepGradient(listOf(Color.Gray, Color(0xFFE6E3E3))),
     backgroundColor: Color = MaterialTheme.colorScheme.background,
     contentPadding: Dp = 0.dp,
     borderWidth: Dp = 1.dp,
@@ -109,7 +109,7 @@ fun InfiniteBorderAnimationView(
 @Composable
 fun LimitedBorderAnimationView(
     isAnimated: Boolean = false,
-    brush: Brush = Brush.sweepGradient(listOf(Color.Gray, Color.White)),
+    brush: Brush = Brush.sweepGradient(listOf(Color.Gray, Color(0xFFE6E3E3))),
     backgroundColor: Color = MaterialTheme.colorScheme.background,
     contentPadding: Dp = 0.dp,
     borderWidth: Dp = 1.dp,

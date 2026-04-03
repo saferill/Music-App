@@ -103,6 +103,9 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_onSurfaceVariant
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_secondary
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -304,6 +307,10 @@ fun LyricsLineItem(
     isCurrent: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
+    val accentGradient =
+        Brush.linearGradient(
+            colors = listOf(md_theme_dark_primary, md_theme_dark_secondary),
+        )
     Crossfade(targetState = isBold) {
         if (it) {
             Column(
@@ -320,16 +327,27 @@ fun LyricsLineItem(
                             },
                         ),
                     text = originalWords,
-                    style = typo().headlineLarge,
+                    style = if (isCurrent) typo().displayLarge else typo().headlineLarge,
                     color =
                         if (isCurrent) {
-                            Color.White
+                            Color(0xFFEDEAF2)
                         } else {
-                            Color.LightGray.copy(
+                            md_theme_dark_onSurfaceVariant.copy(
                                 alpha = 0.35f,
                             )
                         },
                 )
+                if (isCurrent) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier =
+                            Modifier
+                                .width(40.dp)
+                                .height(3.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(accentGradient),
+                    )
+                }
                 if (translatedWords != null) {
                     Text(
                         modifier =
@@ -344,9 +362,9 @@ fun LyricsLineItem(
                         style = typo().bodyMedium,
                         color =
                             if (isCurrent) {
-                                Color.Yellow
+                                Color(0xFFD6C2FF)
                             } else {
-                                Color(0xFF97971A).copy(
+                                md_theme_dark_onSurfaceVariant.copy(
                                     alpha = 0.3f,
                                 )
                             },
@@ -366,7 +384,7 @@ fun LyricsLineItem(
                 text = originalWords,
                 style = typo().headlineMedium,
                 color =
-                    Color.LightGray.copy(
+                    md_theme_dark_onSurfaceVariant.copy(
                         alpha = 0.35f,
                     ),
             )
@@ -376,7 +394,7 @@ fun LyricsLineItem(
                     text = translatedWords,
                     style = typo().bodyMedium,
                     color =
-                        Color(0xFF97971A).copy(
+                        md_theme_dark_onSurfaceVariant.copy(
                             alpha = 0.3f,
                         ),
                 )
@@ -505,7 +523,7 @@ private fun AnimatedWord(
                 typo().headlineLarge.copy(
                     fontSize = customFontSize ?: typo().headlineLarge.fontSize,
                 ),
-            color = Color.LightGray.copy(alpha = 0.35f),
+            color = md_theme_dark_onSurfaceVariant.copy(alpha = 0.35f),
         )
         return
     }
@@ -569,15 +587,15 @@ private fun AnimatedWord(
             val charColor =
                 when {
                     animatedCharProgress >= 1f -> {
-                        Color.White
+                        Color(0xFFEDEAF2)
                     }
                     animatedCharProgress <= 0f -> {
-                        Color.LightGray.copy(alpha = 0.6f)
+                        md_theme_dark_onSurfaceVariant.copy(alpha = 0.6f)
                     }
                     else -> {
                         // Smooth interpolation
                         val t = animatedCharProgress
-                        val gray = Color.LightGray.copy(alpha = 0.6f)
+                        val gray = md_theme_dark_onSurfaceVariant.copy(alpha = 0.6f)
                         Color(
                             red = gray.red + (1f - gray.red) * t,
                             green = gray.green + (1f - gray.green) * t,
@@ -761,7 +779,7 @@ fun FullscreenLyricsSheet(
         )
         val rainbowColor = hsvToColor(rainbowHue, 1f, 1f)
         val sliderTrackColor by animateColorAsState(
-            targetValue = if (timelineState.isCrossfading) rainbowColor else Color.White,
+            targetValue = if (timelineState.isCrossfading) rainbowColor else md_theme_dark_primary,
             animationSpec = tween(300),
             label = "sliderCrossfadeColor",
         )
@@ -886,7 +904,7 @@ fun FullscreenLyricsSheet(
                         Text(
                             text = screenDataState.nowPlayingTitle,
                             style = typo().labelSmall,
-                            color = Color.White,
+                            color = Color(0xFFE6E3E3),
                             maxLines = 1,
                             modifier =
                                 Modifier
@@ -931,7 +949,7 @@ fun FullscreenLyricsSheet(
                             Text(
                                 text = screenDataState.artistName,
                                 style = typo().bodySmall,
-                                color = Color.White.copy(alpha = 0.7f),
+                            color = md_theme_dark_onSurfaceVariant,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -962,7 +980,7 @@ fun FullscreenLyricsSheet(
                         Icon(
                             painter = painterResource(Res.drawable.baseline_more_vert_24),
                             contentDescription = "",
-                            tint = Color.White,
+                            tint = md_theme_dark_onSurfaceVariant,
                         )
                     }
                 }
@@ -1001,7 +1019,7 @@ fun FullscreenLyricsSheet(
                                 Text(
                                     text = stringResource(Res.string.unavailable),
                                     style = typo().bodyMedium,
-                                    color = Color.White,
+                                    color = md_theme_dark_onSurfaceVariant,
                                     textAlign = TextAlign.Center,
                                 )
                             }
@@ -1038,8 +1056,8 @@ fun FullscreenLyricsSheet(
                                                     ).clip(
                                                         RoundedCornerShape(8.dp),
                                                     ),
-                                            color = Color.Gray,
-                                            trackColor = Color.DarkGray,
+                                            color = md_theme_dark_onSurfaceVariant.copy(alpha = 0.65f),
+                                            trackColor = md_theme_dark_onSurfaceVariant.copy(alpha = 0.25f),
                                             strokeCap = StrokeCap.Round,
                                         )
                                     }
@@ -1056,8 +1074,8 @@ fun FullscreenLyricsSheet(
                                                     ).clip(
                                                         RoundedCornerShape(8.dp),
                                                     ),
-                                            color = Color.Gray,
-                                            trackColor = Color.DarkGray,
+                                            color = md_theme_dark_onSurfaceVariant.copy(alpha = 0.65f),
+                                            trackColor = md_theme_dark_onSurfaceVariant.copy(alpha = 0.25f),
                                             strokeCap = StrokeCap.Round,
                                             drawStopIndicator = {},
                                         )
@@ -1115,8 +1133,8 @@ fun FullscreenLyricsSheet(
                                             },
                                         colors =
                                             SliderDefaults.colors().copy(
-                                                thumbColor = Color.White,
-                                                activeTrackColor = Color.White,
+                                                thumbColor = md_theme_dark_primary,
+                                                activeTrackColor = md_theme_dark_primary,
                                                 inactiveTrackColor = Color.Transparent,
                                             ),
                                         enabled = true,
@@ -1217,7 +1235,7 @@ fun FullscreenLyricsSheet(
                                             showControlButtons = true
                                         },
                                     ) {
-                                        Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                                        Icon(imageVector = Icons.Outlined.Info, tint = md_theme_dark_onSurfaceVariant, contentDescription = "")
                                     }
                                     Row(
                                         Modifier.align(Alignment.CenterEnd),
@@ -1238,7 +1256,7 @@ fun FullscreenLyricsSheet(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
-                                                tint = Color.White,
+                                                tint = md_theme_dark_onSurfaceVariant,
                                                 contentDescription = "",
                                             )
                                         }

@@ -136,7 +136,7 @@ fun MiniPlayerRoot(
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Close",
-                    tint = Color.White.copy(alpha = 0.7f),
+                    tint = Color(0xFFE6E3E3).copy(alpha = 0.7f),
                     modifier = Modifier.size(16.dp),
                 )
             }

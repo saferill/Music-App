@@ -55,7 +55,7 @@ fun PlaylistThumbnail(
         // Title in bottom right
         Text(
             text = title,
-            color = Color.White,
+            color = Color(0xFFE6E3E3),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -141,7 +141,7 @@ private class PlaylistThumbnailPainter(
 
         drawCircle(
             center = Offset(centerX, centerY),
-            color = Color.White,
+            color = Color(0xFFE6E3E3),
             radius = circleRadius
         )
 
@@ -192,7 +192,7 @@ fun painterPlaylistThumbnail(
             textMeasurer.measure(
                 title,
                 style.copy(
-                    color = Color.White,
+                    color = Color(0xFFE6E3E3),
                     textAlign = TextAlign.Start
                 ),
                 maxLines = 2,
