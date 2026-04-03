@@ -81,10 +81,20 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file(".release-signing/sonara-release.jks")
+            storePassword = "SnrMsc-044b456c67374930!"
+            keyAlias = "sonara"
+            keyPassword = "SnrMsc-044b456c67374930!"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
