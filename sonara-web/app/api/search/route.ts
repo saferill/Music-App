@@ -1,81 +1,105 @@
 import { NextResponse } from 'next/server';
-import { searchInnerTube } from '@/lib/innertube';
-import { normalizeTrack } from '@/lib/media';
+import YTMusic from 'ytmusic-api';
+import {
+  normalizeArtistEntity,
+  normalizeNamedEntity,
+  normalizeTrackList,
+} from '@/lib/media';
 
-/**
- * Basic InnerTube parser for music app needs
- */
-function parseInnerTubeSearch(data: any, type?: string) {
-  const contents = data.contents?.tabbedSearchResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents || [];
-  
-  // Find the primary shelf
-  const shelf = contents.find((c: any) => c.musicShelfRenderer)?.musicShelfRenderer;
-  if (!shelf) return [];
+const ytmusic = new YTMusic();
+let initializePromise: Promise<void> | null = null;
 
-  return shelf.contents.map((item: any) => {
-    const renderer = item.musicResponsiveListItemRenderer;
-    if (!renderer) return null;
+async function ensureInitialized() {
+  if (!initializePromise) {
+    initializePromise = ytmusic
+      .initialize()
+      .then(() => undefined)
+      .catch((error) => {
+        initializePromise = null;
+        throw error;
+      });
+  }
 
-    const videoId = renderer.playlistItemData?.videoId || 
-                    renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId;
-    
-    // Extract title, artist, duration from flexColumns
-    const flexColumns = renderer.flexColumns || [];
-    const title = flexColumns[0]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.[0]?.text;
-    
-    // For artistic/playlist/song differentiation, check the runs in flexColumn[1]
-    const subtextRuns = flexColumns[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs || [];
-    
-    const artist = subtextRuns[0]?.text;
-    const album = subtextRuns[2]?.text;
-    const durationText = subtextRuns[subtextRuns.length - 1]?.text;
+  return initializePromise;
+}
 
-    const thumbnails = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
+function capResults<T>(items: T[], limit = 8) {
+  return items.slice(0, limit);
+}
 
-    if (type === 'artist') {
-      return {
-        type: 'Artist',
-        name: title,
-        artistId: renderer.navigationEndpoint?.browseEndpoint?.browseId,
-        thumbnails,
-      };
-    }
+function normalizeSearchResults(items: unknown[], type: string) {
+  if (!Array.isArray(items)) return [];
 
-    if (type === 'playlist') {
-      return {
-        type: 'Playlist',
-        name: title,
-        playlistId: renderer.navigationEndpoint?.browseEndpoint?.browseId,
-        thumbnails,
-      };
-    }
+  switch (type) {
+    case 'artist':
+      return items.map((item) => normalizeArtistEntity(item as Record<string, unknown>));
+    case 'album':
+      return items.map((item) => normalizeNamedEntity(item as Record<string, unknown>, 'Album'));
+    case 'playlist':
+      return items.map((item) => normalizeNamedEntity(item as Record<string, unknown>, 'Playlist'));
+    case 'song':
+    case 'video':
+      return normalizeTrackList(items);
+    default:
+      return items;
+  }
+}
 
-    // Default: Song/Video
-    return normalizeTrack({
-      videoId,
-      name: title,
-      artist: { name: artist },
-      album: { name: album },
-      thumbnails,
-      durationText,
-    });
-  }).filter(Boolean);
+async function searchByType(query: string, type: string) {
+  await ensureInitialized();
+
+  switch (type) {
+    case 'song':
+      return normalizeSearchResults(await ytmusic.searchSongs(query), 'song');
+    case 'video':
+      return normalizeSearchResults(await ytmusic.searchVideos(query), 'video');
+    case 'artist':
+      return normalizeSearchResults(await ytmusic.searchArtists(query), 'artist');
+    case 'album':
+      return normalizeSearchResults(await ytmusic.searchAlbums(query), 'album');
+    case 'playlist':
+      return normalizeSearchResults(await ytmusic.searchPlaylists(query), 'playlist');
+    default:
+      return [];
+  }
+}
+
+async function searchAll(query: string) {
+  const [songs, videos, artists, albums, playlists] = await Promise.all([
+    searchByType(query, 'song'),
+    searchByType(query, 'video'),
+    searchByType(query, 'artist'),
+    searchByType(query, 'album'),
+    searchByType(query, 'playlist'),
+  ]);
+
+  return [
+    ...capResults(songs, 6),
+    ...capResults(artists, 4),
+    ...capResults(albums, 4),
+    ...capResults(playlists, 4),
+    ...capResults(videos, 4),
+  ];
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
-  const type = searchParams.get('type');
-  
-  if (!query) return NextResponse.json({ error: 'Query required' }, { status: 400 });
-  
+  const query = searchParams.get('q')?.trim();
+  const type = (searchParams.get('type') || 'all').trim().toLowerCase();
+
+  if (!query) {
+    return NextResponse.json({ error: 'Query required' }, { status: 400 });
+  }
+
   try {
-    const rawData = await searchInnerTube(query, type || 'song');
-    const results = parseInnerTubeSearch(rawData, type || 'song');
-    
+    const results =
+      type === 'all'
+        ? await searchAll(query)
+        : await searchByType(query, type);
+
     return NextResponse.json(results, {
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=86400',
       },
     });
   } catch (error) {

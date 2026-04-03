@@ -57,6 +57,10 @@ export function Player() {
   const toggleShuffle = usePlayerStore((state) => state.toggleShuffle);
   const setRepeatMode = usePlayerStore((state) => state.setRepeatMode);
   const isShuffled = usePlayerStore((state) => state.isShuffled);
+  const queue = usePlayerStore((state) => state.queue);
+  const queueIndex = usePlayerStore((state) => state.queueIndex);
+  const shuffledQueue = usePlayerStore((state) => state.shuffledQueue);
+  const playContext = usePlayerStore((state) => state.playContext);
   const repeatMode = usePlayerStore((state) => state.repeatMode);
   const setTrackToAdd = usePlayerStore((state) => state.setTrackToAdd);
   const dominantColor = usePlayerStore((state) => state.dominantColor);
@@ -71,7 +75,7 @@ export function Player() {
     data: null,
     status: 'idle',
   });
-  const [showLyrics, setShowLyrics] = useState(false);
+  const [activeView, setActiveView] = useState<'artwork' | 'lyrics' | 'queue'>('artwork');
   const [imageErrorTrackId, setImageErrorTrackId] = useState<string | null>(null);
   const [sponsorSegments, setSponsorSegments] = useState<Array<{ start: number; end: number }>>([]);
   const playerRef = useRef<any>(null);
@@ -103,6 +107,10 @@ export function Player() {
   );
   const useNativeDirectPlayback = isAndroidNativeAudio() && isDirectStreamReady;
   const useWebDirectPlayback = isDirectStreamReady && !useNativeDirectPlayback;
+  const activeQueue = isShuffled ? shuffledQueue : queue;
+  const activeQueueIndex = isShuffled
+    ? activeQueue.findIndex((track: any) => track.videoId === currentTrack?.videoId)
+    : queueIndex;
 
   useEffect(() => {
     if (currentTrack) {
@@ -119,10 +127,12 @@ export function Player() {
     }
 
     if (!currentTrack.videoId) {
-      setStreamState({
-        trackId: null,
-        url: null,
-        status: 'fallback',
+      queueMicrotask(() => {
+        setStreamState({
+          trackId: null,
+          url: null,
+          status: 'fallback',
+        });
       });
       return;
     }
@@ -198,7 +208,9 @@ export function Player() {
   // SponsorBlock Fetching
   useEffect(() => {
     if (!currentTrack || !currentTrack.videoId) {
-      setSponsorSegments([]);
+      queueMicrotask(() => {
+        setSponsorSegments([]);
+      });
       return;
     }
 
@@ -281,7 +293,7 @@ export function Player() {
     return () => {
       void listener.remove();
     };
-  }, [currentTrack?.videoId, playNext, setDuration, setPlaying, setProgress]);
+  }, [currentTrack?.videoId, playNext, setDuration, setPlaying, setProgress, sponsorSegments]);
 
   useEffect(() => {
     if (!useNativeDirectPlayback || !currentTrack || !streamState.url) return;
@@ -408,6 +420,17 @@ export function Player() {
     }
   }, [currentTrack]);
 
+  const handleQueueTrackSelect = useCallback(
+    (track: any) => {
+      if (!track) return;
+
+      const queueForPlayback = activeQueue.length > 0 ? activeQueue : [track];
+      const context = queueForPlayback.length > 1 ? 'playlist' : playContext;
+      usePlayerStore.getState().playTrack(track, queueForPlayback, context);
+    },
+    [activeQueue, playContext]
+  );
+
   const onReady = useCallback(
     (event: any) => {
       playerRef.current = event.target;
@@ -415,7 +438,7 @@ export function Player() {
         event.target.playVideo();
       }
     },
-    [isPlaying, setDuration]
+    [isPlaying]
   );
 
   const onStateChange = useCallback(
@@ -467,7 +490,7 @@ export function Player() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, useYoutubeFallback, setProgress, duration, playNext]);
+  }, [isPlaying, useYoutubeFallback, setProgress, duration, playNext, sponsorSegments]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -546,7 +569,7 @@ export function Player() {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [currentTrack, useWebDirectPlayback, playNext, setDuration, setPlaying, setProgress]);
+  }, [currentTrack, useWebDirectPlayback, playNext, setDuration, setPlaying, setProgress, sponsorSegments]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -642,23 +665,23 @@ export function Player() {
     : -1;
 
   useEffect(() => {
-    if (!showLyrics || activeLyricIndex < 0) return;
+    if (activeView !== 'lyrics' || activeLyricIndex < 0) return;
 
     lyricLineRefs.current[activeLyricIndex]?.scrollIntoView({
       behavior: 'smooth',
       block: 'center',
     });
-  }, [activeLyricIndex, showLyrics]);
+  }, [activeLyricIndex, activeView]);
 
   useEffect(() => {
-    if (!showLyrics || !currentTrack) return;
+    if (activeView !== 'lyrics' || !currentTrack) return;
 
     lyricLineRefs.current = [];
     lyricsContainerRef.current?.scrollTo({
       top: 0,
       behavior: 'auto',
     });
-  }, [currentTrack, showLyrics]);
+  }, [currentTrack, activeView]);
 
   // Update Media Session Metadata
   useEffect(() => {
@@ -1017,7 +1040,7 @@ export function Player() {
               </div>
 
               <div className="flex min-h-0 flex-1 flex-col justify-center">
-                {showLyrics ? (
+                {activeView === 'lyrics' ? (
                   <div
                     ref={lyricsContainerRef}
                     className="glass-panel flex-1 overflow-y-auto rounded-[28px] px-4 py-5 no-scrollbar sm:px-6 sm:py-6"
@@ -1063,6 +1086,69 @@ export function Player() {
                       <div className="flex h-full items-center justify-center text-center text-sm leading-7 text-white/55 sm:text-base">
                         Lirik untuk {trackTitle} dari {artistName} belum ketemu. Sonara sudah coba cari dari beberapa
                         sumber, jadi kalau provider menambah data lagu ini nanti tombol lirik akan ikut hidup.
+                      </div>
+                    )}
+                  </div>
+                ) : activeView === 'queue' ? (
+                  <div className="glass-panel flex-1 overflow-y-auto rounded-[28px] px-3 py-3 no-scrollbar sm:px-4 sm:py-4">
+                    <div className="mb-4 flex items-center justify-between px-2">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-[0.24em] text-white/40">Up Next</div>
+                        <h3 className="mt-1 text-lg font-semibold text-white sm:text-xl">Antrean aktif</h3>
+                      </div>
+                      <div className="text-xs uppercase tracking-[0.22em] text-white/35">
+                        {Math.max(activeQueue.length, 0)} track
+                      </div>
+                    </div>
+
+                    {activeQueue.length > 0 ? (
+                      <div className="space-y-2 pb-2">
+                        {activeQueue.map((track: any, index: number) => {
+                          const queueArtist = Array.isArray(track.artist)
+                            ? track.artist.map((artist: any) => artist.name).join(', ')
+                            : track.artist?.name || 'Unknown Artist';
+                          const isActive = track.videoId === currentTrack.videoId;
+
+                          return (
+                            <button
+                              key={`${track.videoId}-${index}`}
+                              onClick={() => handleQueueTrackSelect(track)}
+                              className={cn(
+                                'flex w-full items-center gap-3 rounded-2xl p-3 text-left transition',
+                                isActive ? 'bg-white/10' : 'bg-black/20 hover:bg-black/30'
+                              )}
+                            >
+                              <div className="w-7 shrink-0 text-center text-xs font-semibold text-white/40">
+                                {index + 1}
+                              </div>
+                              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl">
+                                <Image
+                                  src={getHighResImage(track.thumbnails?.[track.thumbnails.length - 1]?.url, 220)}
+                                  alt={track.name || 'Track'}
+                                  fill
+                                  sizes="48px"
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className={cn('truncate text-sm font-semibold', isActive ? 'text-white' : 'text-white/85')}>
+                                  {track.name || 'Lagu tanpa judul'}
+                                </div>
+                                <div className="mt-1 truncate text-xs text-white/45">{queueArtist}</div>
+                              </div>
+                              {isActive && (
+                                <div className="rounded-full border border-[var(--accent)]/35 bg-[var(--accent)]/15 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--accent)]">
+                                  Sedang diputar
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex h-full items-center justify-center px-4 text-center text-sm leading-7 text-white/55">
+                        Antrean belum tersedia. Putar lagu dari beranda, pencarian, album, atau playlist untuk melihat
+                        daftar lagu berikutnya di sini.
                       </div>
                     )}
                   </div>
@@ -1179,15 +1265,21 @@ export function Player() {
                 </div>
 
                 <div className="grid grid-cols-3 items-center gap-2 rounded-[24px] bg-white/5 px-3 py-3 sm:flex sm:justify-between sm:px-6 sm:py-4">
-                  <button className="flex flex-col items-center gap-1 text-white/80 transition hover:text-white">
+                  <button
+                    onClick={() => setActiveView('queue')}
+                    className={cn(
+                      'flex flex-col items-center gap-1 transition',
+                      activeView === 'queue' ? 'text-white' : 'text-white/80 hover:text-white'
+                    )}
+                  >
                     <ListMusic className="h-5 w-5" />
                     <span className="text-[10px] uppercase tracking-wider">Up Next</span>
                   </button>
                   <button
-                    onClick={() => setShowLyrics(!showLyrics)}
+                    onClick={() => setActiveView(activeView === 'lyrics' ? 'artwork' : 'lyrics')}
                     className={cn(
                       'flex flex-col items-center gap-1 transition',
-                      showLyrics ? 'text-white' : 'text-white/80 hover:text-white'
+                      activeView === 'lyrics' ? 'text-white' : 'text-white/80 hover:text-white'
                     )}
                   >
                     <Mic2 className="h-5 w-5" />

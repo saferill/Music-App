@@ -160,4 +160,8 @@ export const db = {
     const db = await dbPromise;
     return db.delete('recent_searches', query);
   },
+  async clearRecentSearches() {
+    const db = await dbPromise;
+    return db.clear('recent_searches');
+  },
 };
