@@ -31,6 +31,10 @@ import { LyricsPayload } from '@/lib/lyrics';
 import { getApiBaseUrl } from '@/lib/config';
 import { playbackNotification } from '@/lib/playback-notification';
 import { isAndroidNativeAudio, nativeAudio } from '@/lib/native-audio';
+import { SleepTimerDialog } from './SleepTimerDialog';
+import { useSleepTimerStore } from '@/lib/sleep-timer';
+import { EqualizerDialog } from './EqualizerDialog';
+import { useEqStore } from '@/lib/equalizer';
 
 type LyricsStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
 type StreamStatus = 'idle' | 'loading' | 'ready' | 'fallback';
@@ -89,6 +93,11 @@ export function Player() {
   const lyricLineRefs = useRef<Array<HTMLParagraphElement | null>>([]);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
   const isBackgrounded = useRef(false);
+  
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const filtersRef = useRef<any[]>([]);
+  const { gains } = useEqStore();
   const lyrics =
     currentTrack && lyricsState.trackId === currentTrack.videoId ? lyricsState.data : null;
   const lyricsStatus: LyricsStatus =
@@ -111,6 +120,23 @@ export function Player() {
   const activeQueueIndex = isShuffled
     ? activeQueue.findIndex((track: any) => track.videoId === currentTrack?.videoId)
     : queueIndex;
+
+  const { stopAtEndOfTrack, clearTimer } = useSleepTimerStore();
+  
+  const lastNextCallRef = useRef<number>(0);
+  const safePlayNext = useCallback(() => {
+    if (stopAtEndOfTrack) {
+      setPlaying(false);
+      clearTimer();
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastNextCallRef.current > 2000) {
+      lastNextCallRef.current = now;
+      void playNext();
+    }
+  }, [playNext, stopAtEndOfTrack, setPlaying, clearTimer]);
 
   useEffect(() => {
     if (currentTrack) {
@@ -265,7 +291,7 @@ export function Player() {
       }
 
       if (event.ended && currentTrack?.videoId && event.trackId === currentTrack.videoId) {
-        void playNext();
+        safePlayNext();
       }
 
       // Check SponsorBlock for Native
@@ -435,7 +461,11 @@ export function Player() {
     (event: any) => {
       playerRef.current = event.target;
       if (isPlaying) {
-        event.target.playVideo();
+        try {
+          event.target.playVideo();
+        } catch (e) {
+          console.warn('onReady playVideo error', e);
+        }
       }
     },
     [isPlaying]
@@ -445,17 +475,21 @@ export function Player() {
     async (event: any) => {
       if (event.data === YouTube.PlayerState.PLAYING) {
         setPlaying(true);
-        const duration = await event.target.getDuration();
-        setDuration(duration || 0);
+        try {
+           const duration = await event.target.getDuration();
+           setDuration(duration || 0);
+        } catch (e) {
+           console.warn('getDuration error', e);
+        }
       } else if (event.data === YouTube.PlayerState.PAUSED) {
         // Reflect the real playback state so Android notification can show a Play action
         // when the WebView or iframe pauses playback in background.
         setPlaying(false);
       } else if (event.data === YouTube.PlayerState.ENDED) {
-        void playNext();
+        safePlayNext();
       }
     },
-    [setPlaying, setDuration, playNext]
+    [setPlaying, setDuration, safePlayNext]
   );
 
   useEffect(() => {
@@ -472,7 +506,7 @@ export function Player() {
 
             // Robust background ending check
             if (time > 0 && duration > 0 && time >= duration - 1 && playerState !== YouTube.PlayerState.PLAYING) {
-              void playNext();
+              safePlayNext();
             }
 
             // Check SponsorBlock
@@ -490,7 +524,7 @@ export function Player() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, useYoutubeFallback, setProgress, duration, playNext, sponsorSegments]);
+  }, [isPlaying, useYoutubeFallback, setProgress, duration, safePlayNext, sponsorSegments]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -535,7 +569,7 @@ export function Player() {
     };
 
     const handleEnded = () => {
-      void playNext();
+      safePlayNext();
     };
 
     const handleError = () => {
@@ -569,7 +603,7 @@ export function Player() {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [currentTrack, useWebDirectPlayback, playNext, setDuration, setPlaying, setProgress, sponsorSegments]);
+  }, [currentTrack, useWebDirectPlayback, safePlayNext, setDuration, setPlaying, setProgress, sponsorSegments]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -600,15 +634,72 @@ export function Player() {
     }
 
     if (useYoutubeFallback && playerRef.current) {
-      if (isPlaying) {
-        if (typeof playerRef.current.playVideo === 'function') {
-          playerRef.current.playVideo();
+      try {
+        if (isPlaying) {
+          if (typeof playerRef.current.playVideo === 'function') {
+            playerRef.current.playVideo();
+          }
+        } else if (typeof playerRef.current.pauseVideo === 'function') {
+          playerRef.current.pauseVideo();
         }
-      } else if (typeof playerRef.current.pauseVideo === 'function') {
-        playerRef.current.pauseVideo();
+      } catch (e) {
+        console.warn('YouTube Player API Error (play/pause):', e);
       }
     }
   }, [useWebDirectPlayback, useYoutubeFallback, streamState.url, isPlaying, setPlaying]);
+
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    if (!audioEl || useNativeDirectPlayback) return;
+    
+    const initAudio = () => {
+      try {
+        if (!audioContextRef.current) {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (!AudioContextClass) return;
+          const ctx = new AudioContextClass();
+          audioContextRef.current = ctx;
+          
+          sourceNodeRef.current = ctx.createMediaElementSource(audioEl);
+          const freqs = [60, 230, 910, 3600, 14000];
+          
+          const filters = freqs.map((freq, i) => {
+            const filter = ctx.createBiquadFilter();
+            filter.type = i === 0 ? 'lowshelf' : i === freqs.length - 1 ? 'highshelf' : 'peaking';
+            filter.frequency.value = freq;
+            if (filter.type === 'peaking') filter.Q.value = 1;
+            filter.gain.value = gains[i] || 0;
+            return filter;
+          });
+          filtersRef.current = filters;
+
+          sourceNodeRef.current.connect(filters[0]);
+          for (let i = 0; i < filters.length - 1; i++) {
+            filters[i].connect(filters[i + 1]);
+          }
+          filters[filters.length - 1].connect(ctx.destination);
+        } else if (audioContextRef.current.state === 'suspended') {
+          void audioContextRef.current.resume();
+        }
+      } catch (e) {
+        console.error("Audio Routing error", e);
+      }
+    };
+    
+    audioEl.addEventListener('play', initAudio);
+    return () => audioEl.removeEventListener('play', initAudio);
+  }, [useNativeDirectPlayback]); 
+
+  // Fast equalizer gain updates without re-instantiation
+  useEffect(() => {
+    if (filtersRef.current.length === gains.length) {
+      gains.forEach((gain, i) => {
+        if (filtersRef.current[i]) {
+          filtersRef.current[i].gain.value = gain;
+        }
+      });
+    }
+  }, [gains]);
 
   useEffect(() => {
     if (!useNativeDirectPlayback) return;
@@ -728,7 +819,7 @@ export function Player() {
       playPrev();
     });
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-      void playNext();
+      safePlayNext();
     });
     navigator.mediaSession.setActionHandler('seekto', (details) => {
       if (details.seekTime === undefined) return;
@@ -779,7 +870,7 @@ export function Player() {
         try { navigator.mediaSession.setActionHandler(h as any, null); } catch(e) {}
       });
     };
-  }, [useNativeDirectPlayback, useWebDirectPlayback, setPlaying, playPrev, playNext, setProgress, progress, duration, playerRef]);
+  }, [useNativeDirectPlayback, useWebDirectPlayback, setPlaying, playPrev, safePlayNext, setProgress, progress, duration, playerRef]);
 
   useEffect(() => {
     if (useNativeDirectPlayback) {
@@ -811,6 +902,10 @@ export function Player() {
       if (action === 'play') {
         setPlaying(true);
       } else if (action === 'pause') {
+        setPlaying(false);
+      } else if (action === 'next') {
+        safePlayNext();
+      } else if (action === 'previous') {
         setPlaying(false);
       }
     });
@@ -914,6 +1009,12 @@ export function Player() {
             }}
             onReady={onReady}
             onStateChange={onStateChange}
+            onError={(e) => {
+               console.error("YouTube Player Error code:", e.data);
+               // If video is unplayable (e.g. 150 = restrictions, 100 = not found)
+               // Automatically skip to the next
+               setTimeout(() => playNext(), 1500);
+            }}
           />
         )}
       </div>
@@ -1014,13 +1115,30 @@ export function Player() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[100] flex flex-col"
-            style={{
-              background: dominantColor
-                ? `linear-gradient(to bottom, color-mix(in srgb, ${dominantColor} 40%, #121212) 0%, #121212 100%)`
-                : '#121212',
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.8 }}
+            onDragEnd={(e, info) => {
+              if (info.offset.y > 150 || info.velocity.y > 500) {
+                setExpanded(false);
+              }
             }}
+            className="fixed inset-0 z-[100] flex flex-col bg-black overflow-hidden"
           >
+            {/* Haze Effect Background */}
+            <div className="absolute inset-0 pointer-events-none z-0">
+               {!imageError && (
+                 <Image
+                   src={thumbnail}
+                   alt="background"
+                   fill
+                   sizes="100vw"
+                   className="object-cover opacity-50 blur-[60px] saturate-200 scale-125 transition-all duration-1000 ease-in-out"
+                 />
+               )}
+               <div className="absolute inset-0 bg-black/60" />
+               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+            </div>
             <div className="relative z-10 flex h-full flex-col px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4 sm:p-6 sm:pb-[calc(1.75rem+env(safe-area-inset-bottom))]">
               <div className="mb-5 flex items-center justify-between sm:mb-8">
                 <button onClick={() => setExpanded(false)} className="-ml-2 p-2 text-white">
@@ -1033,9 +1151,8 @@ export function Player() {
                   <button className="p-2 text-white">
                     <Cast className="h-5 w-5 sm:h-6 sm:w-6" />
                   </button>
-                  <button className="-mr-2 p-2 text-white">
-                    <MoreVertical className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </button>
+                  <EqualizerDialog />
+                  <SleepTimerDialog />
                 </div>
               </div>
 
@@ -1068,12 +1185,13 @@ export function Player() {
                                   lyricLineRefs.current[index] = node;
                                 }}
                                 className={cn(
-                                  'whitespace-pre-wrap text-lg font-semibold leading-relaxed transition-all sm:text-2xl',
+                                  'whitespace-pre-wrap text-[22px] font-bold leading-[1.4] transition-all duration-300 sm:text-[28px]',
                                   isActive
-                                    ? 'scale-[1.01] text-white'
+                                    ? 'scale-[1.02] text-white opacity-100'
                                     : lyrics.synced
-                                      ? 'text-white/35'
-                                      : 'text-white/90'
+                                      ? 'blur-[0.5px] text-white/30 sm:blur-[1px]'
+                                      : 'text-white/90',
+                                  isActive && 'drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]'
                                 )}
                               >
                                 {line.text}

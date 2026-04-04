@@ -77,11 +77,37 @@ export function BackgroundProvider() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="absolute inset-0"
-            style={{
-              background: `radial-gradient(circle at 50% 0%, color-mix(in srgb, ${dominantColor} 30%, #0A0A0A) 0%, #0A0A0A 100%)`
-            }}
-          />
+            className="absolute inset-0 overflow-hidden"
+          >
+            <div className="absolute inset-0 opacity-40 mix-blend-screen blur-[100px] md:blur-[140px]">
+              <motion.div
+                animate={{
+                  transform: ['translate(0%,0%) scale(1)', 'translate(10%,5%) scale(1.1)', 'translate(-5%,15%) scale(0.9)', 'translate(0%,0%) scale(1)'],
+                }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="absolute top-0 left-0 h-[60vh] w-[60vw] rounded-full"
+                style={{ backgroundColor: dominantColor }}
+              />
+              <motion.div
+                animate={{
+                  transform: ['translate(0%,0%) scale(1)', 'translate(-10%,-5%) scale(1.2)', 'translate(5%,-10%) scale(1)', 'translate(0%,0%) scale(1)'],
+                }}
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                className="absolute bottom-0 right-0 h-[70vh] w-[70vw] rounded-full"
+                style={{ backgroundColor: `color-mix(in srgb, ${dominantColor} 80%, black 20%)` }}
+              />
+              <motion.div
+                animate={{
+                  transform: ['translate(0%,0%) scale(1)', 'translate(5%,-15%) scale(0.9)', 'translate(-10%,5%) scale(1.1)', 'translate(0%,0%) scale(1)'],
+                }}
+                transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+                className="absolute top-1/2 left-1/2 h-[50vh] w-[50vw] -translate-x-1/2 -translate-y-1/2 rounded-full"
+                style={{ backgroundColor: `color-mix(in srgb, ${dominantColor} 50%, white 10%)` }}
+              />
+            </div>
+            {/* Overlay to ensure text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/40 via-[#0A0A0A]/80 to-[#0A0A0A]" />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
