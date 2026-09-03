@@ -1,5 +1,6 @@
-<br><b>Mới</b>
-* Tạo playlist cá nhân
-* Tải xuống playlist
-* Thêm chức năng xoá cache và dữ liệu
-* Thêm cấu trúc Fastlane
+Sonara Music Initial Release (v1.0.0)
+* Ad-free streaming powered by YouTube Music
+* Background playback & Auto-recovery
+* Real-time synchronized lyrics
+* Offline downloads and caching
+* Kotlin Multiplatform & Jetpack Compose UI

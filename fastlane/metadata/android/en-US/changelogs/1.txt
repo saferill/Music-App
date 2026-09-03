@@ -1,5 +1,6 @@
-<br><b>New</b>
-* Create local playlists yourself
-* Download playlist
-* Add "Clear cache and download" feature
-* Added Fastlane structure
+Sonara Music Initial Release (v1.0.0)
+* Ad-free streaming powered by YouTube Music
+* Background playback & Auto-recovery
+* Real-time synchronized lyrics
+* Offline downloads and caching
+* Kotlin Multiplatform & Jetpack Compose UI
