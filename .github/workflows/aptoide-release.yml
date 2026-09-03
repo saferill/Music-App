@@ -1,0 +1,37 @@
+name: Auto Publish to Aptoide
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  upload-aptoide:
+    name: Upload APK to Aptoide
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "zulu"
+          cache: "gradle"
+
+      - name: Build Universal Release APK
+        run: ./gradlew :androidApp:assembleRelease
+
+      - name: Upload to Aptoide
+        env:
+          APTOIDE_KEY: ${{ secrets.APTOIDE_KEY || 'e049677c-39ba-4e86-b756-0f1cf4a29a37' }}
+        run: |
+          APK_PATH=$(find androidApp/build/outputs/apk/release/ -name "*universal*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find androidApp/build/outputs/apk/release/ -name "*.apk" | head -n 1)
+          fi
+          echo "Found APK: $APK_PATH"
+          curl -s -L -X POST "https://webservices.aptoide.com/webservices/3/uploadApp" \
+            -H "Authorization: Bearer $APTOIDE_KEY" \
+            -F "apk=@$APK_PATH" \
+            -F "mode=json"
