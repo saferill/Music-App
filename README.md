@@ -8,6 +8,11 @@ A clean, ad-free music streaming app for Android and Web powered by YouTube Musi
 
 [![Release](https://img.shields.io/github/v/release/saferill/Music-App?color=brightgreen&label=Release)](https://github.com/saferill/Music-App/releases)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
+[![AlternativeTo](https://img.shields.io/badge/AlternativeTo-Listed-blue?logo=alternativeto&logoColor=white)](https://alternativeto.net/software/sonara-music/about/?utm_source=badge&utm_medium=referral)
+
+<a href="https://alternativeto.net/software/sonara-music/about/?utm_source=badge&utm_medium=referral" target="_blank">
+  <img src="https://alternativeto.net/static/badges/badge-compact-color.svg" alt="Sonara Music | AlternativeTo" width="180" />
+</a>
 
 ## Screenshots
 
