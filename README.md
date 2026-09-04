@@ -59,6 +59,17 @@ cd Music-App
 ./gradlew :androidApp:assembleRelease
 ```
 
+## Credits & Attribution
+
+Sonara Music is forked from [SimpMusic](https://github.com/maxrave-dev/SimpMusic) created by [Nguyễn (maxrave-dev)](https://github.com/maxrave-dev). Huge thanks and full credit to the original creator for the foundational work!
+
+### Key Differences & Improvements in Sonara Music:
+- **Stream Auto-Recovery:** Enhanced playback error handler that automatically skips broken stream chunks/formats, preventing playback from halting randomly during long playback sessions.
+- **Default Keep-Alive Daemon:** Service background priority enabled by default to ensure continuous audio on aggressive battery-saving OEM ROMs.
+- **Custom Brand Identity:** Dedicated modern iconography, unique visual assets, and tailored metadata.
+- **Optimized Regional Defaults:** Pre-configured regional content, volume normalization, and built-in SponsorBlock enabled by default.
+
 ## License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
+
